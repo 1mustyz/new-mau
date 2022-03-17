@@ -722,7 +722,8 @@ exports.removeEvent = async (req,res,next) => {
     return evnt.evntId == eventId
   })
 
-  const imageName = resultFilter[0].image.split('/').splice(7)
+  if (resultFilter[0].image != undefined || resultFilter[0].image != null){
+    const imageName = resultFilter[0].image.split('/').splice(7)
     console.log('-----------------',imageName)
 
       cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
@@ -733,6 +734,8 @@ exports.removeEvent = async (req,res,next) => {
     function(error,result) {
       console.log('33333333',result, error)
     });  
+  }
+  
 
 
   await HomePage.findOneAndUpdate({evntId:eventId},{$pull:{[eventName]:{evntId: eventId}}})
