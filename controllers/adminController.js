@@ -639,24 +639,33 @@ exports.addAnImageToEvent = async (req,res, next) => {
 // edit event
 exports.editEvent = async (req,res,next) => {
   let allEvents
+  let resultFilter
   const {eventId,evnt,eventName} = req.body;
   if(eventName == "mainEvents"){
 
     allEvents = await HomePage.findOneAndUpdate({"mainEvents.evntId": eventId},{$set: {"mainEvents.$.header": evnt.header, "mainEvents.$.description": evnt.description, "mainEvents.$.description": evnt.subHeader}},{new:true})
   }else if(eventName == "newsEvents"){
     allEvents = await HomePage.findOneAndUpdate({"newsEvents.evntId": eventId},{$set: {"newsEvents.$.header": evnt.header, "newsEvents.$.description": evnt.description, "newsEvents.$.description": evnt.subHeader}},{new:true})
-  }else if (eventNamee == "programs"){
+  }else if (eventName == "programs"){
     allEvents = await HomePage.findOneAndUpdate({"programs.evntId": eventId},{$set: {"programs.$.header": evnt.header, "programs.$.description": evnt.description,"programs.$.subHeader": evnt.subHeader}},{new:true})
+
+  }else if (eventName == "vc"){
+    allEvents = await HomePage.findOneAndUpdate({},{$set: {"vc.header": evnt.header, "vc.description": evnt.description,"vc.subHeader": evnt.subHeader,"vc.name": evnt.name}},{new:true})
 
   }else{
   res.json({success: false, message: `wrong parameters`})
 
   }
   const result = await HomePage.findOne({},{_id: 0,[eventName]: 1})
-        
-    const resultFilter = result[eventName].filter((evnt)=>{
-      return evnt.evntId == eventId
-    })
+  if (eventName != "vc"){
+
+          
+      resultFilter = result[eventName].filter((evnt)=>{
+        return evnt.evntId == eventId
+      })
+  }else {
+    resultFilter = result
+  }
 
   res.json({success: true, allEvents,editedEvent:resultFilter})
 }
