@@ -892,7 +892,7 @@ exports.removeFaculty = async (req,res,next) => {
       console.log(dpt.hod)
       if (dpt.hod != null){
         if(dpt.hod.image != null){
-          
+
         }
         const imageNameHod = dpt.hod.image.split('/').splice(7)
       console.log('-----------------',imageNameHod)
@@ -966,7 +966,7 @@ exports.addDean = async (req,res,next) => {
   let result
   
   try {
-    result = await Faculty.findOneAndUpdate(facultyId,{"dean":dean},{new:true})
+    result = await Faculty.findOneAndUpdate({facultyId: facultyId},{"dean":dean},{new:true})
   } catch (error) {
   res.json({success: false, error});
     
