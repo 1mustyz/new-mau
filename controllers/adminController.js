@@ -643,9 +643,9 @@ exports.editEvent = async (req,res,next) => {
   const {eventId,evnt,eventName} = req.body;
   if(eventName == "mainEvents"){
 
-    allEvents = await HomePage.findOneAndUpdate({"mainEvents.evntId": eventId},{$set: {"mainEvents.$.header": evnt.header, "mainEvents.$.description": evnt.description, "mainEvents.$.description": evnt.subHeader}},{new:true})
+    allEvents = await HomePage.findOneAndUpdate({"mainEvents.evntId": eventId},{$set: {"mainEvents.$.header": evnt.header, "mainEvents.$.description": evnt.description, "mainEvents.$.subHeader": evnt.subHeader}},{new:true})
   }else if(eventName == "newsEvents"){
-    allEvents = await HomePage.findOneAndUpdate({"newsEvents.evntId": eventId},{$set: {"newsEvents.$.header": evnt.header, "newsEvents.$.description": evnt.description, "newsEvents.$.description": evnt.subHeader}},{new:true})
+    allEvents = await HomePage.findOneAndUpdate({"newsEvents.evntId": eventId},{$set: {"newsEvents.$.header": evnt.header, "newsEvents.$.description": evnt.description, "newsEvents.$.subHeader": evnt.subHeader}},{new:true})
   }else if (eventName == "programs"){
     allEvents = await HomePage.findOneAndUpdate({"programs.evntId": eventId},{$set: {"programs.$.header": evnt.header, "programs.$.description": evnt.description,"programs.$.subHeader": evnt.subHeader}},{new:true})
 
