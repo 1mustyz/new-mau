@@ -872,6 +872,7 @@ exports.removeFaculty = async (req,res,next) => {
 
     const resultImage = await Faculty.findOne({"facultyId":facultyId})
     const resultImageFilter = resultImage.departmentList.map((dpt)=>{
+      console.log(dpt)
 
       if (dpt.image != null){
         const imageNameDep = dpt.image.split('/').splice(7)
@@ -886,8 +887,13 @@ exports.removeFaculty = async (req,res,next) => {
             // console.log('33333333',result, error)
         });
       }
+
       
-      if (dpt.hod.image){
+      console.log(dpt.hod)
+      if (dpt.hod != null){
+        if(dpt.hod.image != null){
+          
+        }
         const imageNameHod = dpt.hod.image.split('/').splice(7)
       console.log('-----------------',imageNameHod)
 
@@ -922,21 +928,23 @@ exports.removeFaculty = async (req,res,next) => {
     }
 
     // delete faculty image from server
-    if(resultImage.dean.image != null){
+    if(resultImage.dean != null){
       // console.log('222222','hshsisi')
+      if(resultImage.dean.image != null){
+        const imageName = resultImage.dean.image.split('/').splice(7)
+        console.log('-----------------',imageName)
+  
+            cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+        {
+          invalidate: true,
+            resource_type: "raw"
+        }, 
+          function(error,result) {
+            // console.log('33333333',result, error)
+        });  
+      }
       
-      
-      const imageName = resultImage.dean.image.split('/').splice(7)
-      console.log('-----------------',imageName)
-
-          cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-      {
-        invalidate: true,
-          resource_type: "raw"
-      }, 
-        function(error,result) {
-          // console.log('33333333',result, error)
-      });  
+     
     }
 
     console.log(resultImageFilter)
@@ -944,7 +952,7 @@ exports.removeFaculty = async (req,res,next) => {
     result = await Faculty.find({},{dean:0,departmentList:0})
 
   } catch (error) {
-  res.json({success: false, error})
+  console.log({success: false, error})
     
   }
   res.json({success: true, message: `Faculty with the ID ${facultyId} has been removed`, result})
