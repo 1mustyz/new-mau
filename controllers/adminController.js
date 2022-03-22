@@ -597,7 +597,7 @@ exports.addAnImageToEvent = async (req,res, next) => {
         // console.log('222222','hshsisi')
 
           
-        const imageName = resultFilter[0].image.split('/').splice(7)
+        const imageName = resultFilter[0].hod.image.split('/').splice(7)
         console.log('-----------------',imageName)
 
            cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
@@ -1132,17 +1132,17 @@ exports.editHod = async (req,res,next) => {
 
 // edit department program
 exports.editDepartmentProgram = async (req,res,next) => {
-  const {departmentId,programId,facultyId} = req.query;
+  const {departmentId,programId} = req.query;
   const {program} = req.body
   console.log(program)
   let result
   try {
     await Faculty.findOneAndUpdate(
-      {"facultyId":facultyId},
+      {"departmentList.departmentId":departmentId},
       {$set:{
         "departmentList.$[e1].programs.$[e2].name":program.name,
         "departmentList.$[e1].programs.$[e2].mission":program.mission,
-        "departmentList.$[e1].programs.$[e2].addmissionRequirement":program.addmissionRequirement,
+        "departmentList.$[e1].programs.$[e2].admissionRequirement":program.admissionRequirement,
       }},
       { 
         arrayFilters: [
@@ -1150,7 +1150,7 @@ exports.editDepartmentProgram = async (req,res,next) => {
           { "e2.programId": programId}],
       })
 
-    result = await Faculty.findOne({"facultyId":facultyId})
+    result = await Faculty.findOne({"departmentList.departmentId":departmentId})
 
     
   } catch (error) {
@@ -1161,12 +1161,12 @@ exports.editDepartmentProgram = async (req,res,next) => {
 
 // edit department staffs
 exports.editDepartmentStaffs = async (req,res,next) => {
-  const {departmentId,staffId,facultyId} = req.query;
+  const {departmentId,staffId} = req.query;
   const {staff} = req.body
   let result
   try {
     await Faculty.findOneAndUpdate(
-      {"facultyId":facultyId},
+      {"departmentList.departmentId":departmentId},
       {$set:{
         "departmentList.$[e1].staffList.$[e2].name":staff.name,
         "departmentList.$[e1].staffList.$[e2].qualification":staff.qualification
@@ -1177,7 +1177,7 @@ exports.editDepartmentStaffs = async (req,res,next) => {
           { "e2.staffId": staffId}],
       }
       )
-      result = await Faculty.findOne({"facultyId":facultyId})
+      result = await Faculty.findOne({"departmentList.departmentId":departmentId})
     
   } catch (error) {
     console.log({success: false, error})
@@ -1224,12 +1224,12 @@ exports.removeHod = async (req,res,next) => {
 
 // delete or department program
 exports.removeDepartmentProgram = async (req,res,next) => {
-  const {departmentId,programId,facultyId} = req.query;
+  const {departmentId,programId} = req.query;
   let result
   try {
     
     await Faculty.findOneAndUpdate(
-      {"facultyId":facultyId},
+      {"departmentList.departmentId":departmentId},
       {$pull:{"departmentList.$[e1].programs": {programId: programId}}},
       { 
         arrayFilters: [
@@ -1237,7 +1237,7 @@ exports.removeDepartmentProgram = async (req,res,next) => {
           { "e2.programId": programId}],
       }
       )
-    result = await Faculty.findOne({"facultyId":facultyId})
+    result = await Faculty.findOne({"departmentList.departmentId":departmentId})
     
   } catch (error) {
   console.log({success: false, error})
@@ -1248,12 +1248,12 @@ exports.removeDepartmentProgram = async (req,res,next) => {
 
 // delete or staff
 exports.removeDepartmentStaff = async (req,res,next) => {
-  const {departmentId,staffId,facultyId} = req.query;
+  const {departmentId,staffId} = req.query;
   let result
   try {
     
     await Faculty.findOneAndUpdate(
-      {"facultyId":facultyId},
+      {"departmentList.departmentId":departmentId},
       {$pull:{"departmentList.$[e1].staffList": {staffId: staffId}}},
       { 
         arrayFilters: [
@@ -1262,7 +1262,7 @@ exports.removeDepartmentStaff = async (req,res,next) => {
       }
       )
 
-    result = await Faculty.findOne({"facultyId":facultyId})
+    result = await Faculty.findOne({"departmentList.departmentId":departmentId})
   } catch (error) {
   console.log({success: false, error})
     
