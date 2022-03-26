@@ -9,6 +9,7 @@ const StaffSchema = new Schema({
     gender: { type: String},
     phone: { type: String, required: true},
     address: { type: String},
+    role: { type: String, default: 'null'},
     image: { type: String, default: 'null' },
 }, { timestamps: true });
 

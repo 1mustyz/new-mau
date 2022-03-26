@@ -9,6 +9,9 @@ const passport = require('passport');
 // register staff route
 router.post('/register-staff',  adminController.registerStaff)
 
+// change password
+router.post('/change-password', adminController.changePassword)
+
 // create client from a file
 // router.post('/create-client-from-file', adminController.registerClientFromAfile)
 
@@ -64,6 +67,9 @@ router.put('/remove-event', adminController.removeEvent)
 // edit faculty
 router.put('/edit-faculty', adminController.editFaculty)
 
+// edit staff
+router.put('/edit-staff', adminController.editStaff)
+
 // edit dean
 router.put('/edit-dean', adminController.editDean)
 
@@ -94,6 +100,9 @@ router.put('/add-department-staff', adminController.addDepartmentStaff)
 // add department program
 router.put('/add-department-program', adminController.addDepartmentProgram)
 
+// add program brochure
+router.put('/add-program-brochure', adminController.addProgramBrochure)
+
 // remove dean
 router.put('/remove-dean', adminController.removeDean)
 
@@ -111,6 +120,9 @@ router.put('/remove-department', adminController.removeDepartment)
 
 // remove faculty
 router.delete('/remove-faculty', adminController.removeFaculty)
+
+// remove staff
+router.delete('/remove-staff', adminController.removeStaff)
 
 
 module.exports = router;

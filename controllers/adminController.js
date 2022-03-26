@@ -169,7 +169,6 @@ exports.loginStaff = (req, res, next) => {
   })(req, res, next)
 }
 
- 
 
 // logout
 exports.logout = (req, res,next) => {
@@ -290,14 +289,37 @@ exports.setProfilePic = async (req,res, next) => {
 // delete or remove staff
 exports.removeStaff = async (req,res,next) => {
   const {username} = req.query;
-  await Staff.findOneAndDelete({username: username})
-  res.json({success: true, message: `staff with the id ${username} has been removed`})
+  console.log('hjjjj')
+
+  try {
+    const resultImage = await Staff.findOne({"username":username})
+      console.log(resultImage)
+
+      if (resultImage.image != null){
+        const imageNameDep = resultImage.image.split('/').splice(7)
+        console.log('-----------------',imageNameDep)
+  
+            cloudinary.v2.api.delete_resources_by_prefix(imageNameDep[0], 
+        {
+          invalidate: true,
+            resource_type: "raw"
+        }, 
+          function(error,result) {
+            // console.log('33333333',result, error)
+        });
+      }
+    await Staff.findOneAndDelete({username: username})
+    res.json({success: true, message: `staff with the id ${username} has been removed`})
+  } catch (error) {
+    
+  }
 }
 
 // edit staff
 exports.editStaff = async (req,res,next) => {
   const {username} = req.query;
-  await Staff.findOneAndUpdate({username: username}, req.body)
+  const {staff} = req.body
+  await Staff.findOneAndUpdate({username: username}, staff)
   res.json({success: true, message: `staff with the username ${username} has been edited`})
 }
 
@@ -871,45 +893,65 @@ exports.removeFaculty = async (req,res,next) => {
   try {
 
     const resultImage = await Faculty.findOne({"facultyId":facultyId})
-    const resultImageFilter = resultImage.departmentList.map((dpt)=>{
-      console.log(dpt)
-
-      if (dpt.image != null){
-        const imageNameDep = dpt.image.split('/').splice(7)
-        console.log('-----------------',imageNameDep)
+    const deleteNestedDocument = () =>{
+      resultImage.departmentList.map((dpt)=>{
+        console.log(dpt)
   
-            cloudinary.v2.api.delete_resources_by_prefix(imageNameDep[0], 
-        {
-          invalidate: true,
-            resource_type: "raw"
-        }, 
-          function(error,result) {
-            // console.log('33333333',result, error)
-        });
-      }
-
-      
-      console.log(dpt.hod)
-      if (dpt.hod != null){
-        if(dpt.hod.image != null){
-
+        if (dpt.programs.length != 0){
+          dpt.programs.map((prm) => {
+            console.log(prm)
+            if(prm.brochure != undefined){
+              const brochureName = prm.brochure.split('/').splice(7)
+                  console.log('-----------------',brochureName)
+          
+                  cloudinary.v2.api.delete_resources_by_prefix(brochureName[0], 
+                  {
+                    invalidate: true,
+                    resource_type: "raw"
+                }, 
+                  function(error,result) {
+                    console.log(result, error) 
+                  }); 
+            }
+          })
         }
-        const imageNameHod = dpt.hod.image.split('/').splice(7)
-      console.log('-----------------',imageNameHod)
-
-          cloudinary.v2.api.delete_resources_by_prefix(imageNameHod[0], 
-      {
-        invalidate: true,
-          resource_type: "raw"
-      }, 
-        function(error,result) {
-          // console.log('33333333',result, error)
-      });
-      }
-      
-    })    
+  
+        if (dpt.image != null){
+          const imageNameDep = dpt.image.split('/').splice(7)
+          console.log('-----------------',imageNameDep)
     
-    // delete faculty image from server
+              cloudinary.v2.api.delete_resources_by_prefix(imageNameDep[0], 
+          {
+            invalidate: true,
+              resource_type: "raw"
+          }, 
+            function(error,result) {
+              // console.log('33333333',result, error)
+          });
+        }
+  
+        
+        console.log(dpt.hod)
+        if (dpt.hod != null){
+          if(dpt.hod.image != null){
+            const imageNameHod = dpt.hod.image.split('/').splice(7)
+            console.log('-----------------',imageNameHod)
+      
+                cloudinary.v2.api.delete_resources_by_prefix(imageNameHod[0], 
+            {
+              invalidate: true,
+                resource_type: "raw"
+            }, 
+              function(error,result) {
+                // console.log('33333333',result, error)
+            });
+          }
+         
+        }
+        
+      })
+
+      // delete faculty image from server
     if(resultImage.image != null){
       // console.log('222222','hshsisi')
       
@@ -947,15 +989,28 @@ exports.removeFaculty = async (req,res,next) => {
      
     }
 
-    console.log(resultImageFilter)
-    await Faculty.findOneAndDelete({facultyId: facultyId})
-    result = await Faculty.find({},{dean:0,departmentList:0})
+    }
 
+    const myPromise = new Promise(async (resolve, reject) => {
+      resolve(deleteNestedDocument())
+    });
+
+
+    myPromise.then(async ()=>{
+      await Faculty.findOneAndDelete({facultyId: facultyId})
+      result = await Faculty.find({},{dean:0,departmentList:0})
+      res.json({success: true, message: `Faculty with the ID ${facultyId} has been removed`, result})
+
+    })
+        
+    
+    
+    // console.log(resultImageFilter)
+   
   } catch (error) {
   console.log({success: false, error})
     
   }
-  res.json({success: true, message: `Faculty with the ID ${facultyId} has been removed`, result})
 }
 
 
@@ -1109,6 +1164,94 @@ exports.addDepartmentProgram = async (req,res,next) => {
     
   }
   res.json({success: true, message: 'Program created successfullty', result});
+}
+
+// add brochure
+exports.addProgramBrochure = async (req,res,next) => {
+  const {programId,departmentId} = req.query
+
+  let result
+  
+  try {
+    singleFileUpload(req, res, async function(err) {
+      if (err instanceof multer.MulterError) {
+      return res.json(err.message);
+      }
+      else if (err) {
+        return res.json(err);
+      }
+      else if (!req.file) {
+        return res.json({"file": req.file, "msg":'Please select a file to upload'});
+      }
+      if(req.file){
+  
+  
+          result = await Faculty.findOne({"departmentList.programs.programId":programId},{departmentList:1})
+          console.log(result)
+          let dResult = []
+          result.departmentList.filter(dpt => {
+            if(dpt.departmentId == departmentId){
+              dResult.push(dpt.programs) 
+            }
+            
+          })
+          console.log(dResult)
+          let pResult = []
+           dResult[0].map(prm => {
+            if(prm.programId == programId) pResult.push(prm)
+          })
+          console.log(pResult.brochure)
+
+  
+          if (pResult[0].brochure != undefined){
+            const brochureName = pResult[0].brochure.split('/').splice(7)
+            console.log('-----------------',brochureName)
+    
+            cloudinary.v2.api.delete_resources_by_prefix(brochureName[0], 
+            {
+              invalidate: true,
+              resource_type: "raw"
+          }, 
+            function(error,result) {
+              console.log(result, error) 
+            }); 
+          }
+  
+  
+        cloudinary.v2.uploader.upload(req.file.path, 
+          { resource_type: "raw" }, 
+          async function(error, result) {
+            console.log('111111111111111111',result, error); 
+    
+            
+            await Faculty.findOneAndUpdate(
+              {"departmentList.programs.programId":programId},
+              {$set:{
+                "departmentList.$[e1].programs.$[e2].brochure":result.secure_url,
+              }},
+              { 
+                arrayFilters: [
+                  {"e1.departmentId": departmentId},
+                  { "e2.programId": programId}],
+              })
+            const editedDepartment = await Faculty.findOne({"departmentList.programs.programId":programId},{department:1})
+
+            
+            res.json({success: true,message: editedDepartment, });
+
+          });
+       
+         
+      }
+         
+    });
+  
+    // result = await Faculty.findOneAndUpdate({"departmentList.departmentId":departmentId},{$push:{"departmentList.$.programs":program}},{new:true})
+    // result = await Faculty.findOne({"departmentList.programs.programId":programId})
+  } catch (error) {
+  console.log({success: false, error});
+    
+  }
 }
 
 // edit hod
@@ -1277,56 +1420,84 @@ exports.removeDepartment = async (req,res,next) => {
   let result
   try {
     const resultImage = await Faculty.findOne({"departmentList.departmentId":departmentId},{_id:0,departmentList:1})
-    const resultImageFilter = resultImage.departmentList.filter((dpt)=>{
-      return dpt.departmentId == departmentId
-    })    
+    const bigPromise = () => {
+      const resultImageFilter = resultImage.departmentList.filter((dpt)=>{
+        return dpt.departmentId == departmentId
+      })    
+      
+      console.log(resultImageFilter)
+  
+      // delete all programs brochure
+      const dptPrograms = resultImageFilter[0].programs
+      dptPrograms.map((prm) => {
+        console.log(prm)
+        if(prm.brochure != undefined){
+          const brochureName = prm.brochure.split('/').splice(7)
+              console.log('-----------------',brochureName)
+      
+              cloudinary.v2.api.delete_resources_by_prefix(brochureName[0], 
+              {
+                invalidate: true,
+                resource_type: "raw"
+            }, 
+              function(error,result) {
+                console.log(result, error) 
+              }); 
+        }
+      })
+      // delete hod image from server
+      if(resultImageFilter[0].hod.image != null){
+        // console.log('222222','hshsisi')
+        
+        
+          const imageName = resultImageFilter[0].hod.image.split('/').splice(7)
+          console.log('-----------------',imageName)
+  
+             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+            {
+              invalidate: true,
+                resource_type: "raw"
+            }, 
+              function(error,result) {
+                // console.log('33333333',result, error)
+              });  
+      }
+  
+      // delete department image from server
+      if(resultImageFilter[0].image != null){
+        // console.log('222222','hshsisi')
+        
+        
+          const imageName = resultImageFilter[0].image.split('/').splice(7)
+          console.log('-----------------',imageName)
+  
+             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+            {
+              invalidate: true,
+                resource_type: "raw"
+            }, 
+              function(error,result) {
+                // console.log('33333333',result, error)
+              });  
+      }
+  
+    }
     
-    console.log(resultImageFilter)
-    // delete hod image from server
-    if(resultImageFilter[0].hod.image != null){
-      // console.log('222222','hshsisi')
-      
-      
-        const imageName = resultImageFilter[0].hod.image.split('/').splice(7)
-        console.log('-----------------',imageName)
+    const myPromise = new Promise(async (resolve, reject) => {
+      resolve(bigPromise())
+    });
 
-           cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-          {
-            invalidate: true,
-              resource_type: "raw"
-          }, 
-            function(error,result) {
-              // console.log('33333333',result, error)
-            });  
-    }
-
-    // delete department image from server
-    if(resultImageFilter[0].image != null){
-      // console.log('222222','hshsisi')
-      
-      
-        const imageName = resultImageFilter[0].image.split('/').splice(7)
-        console.log('-----------------',imageName)
-
-           cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-          {
-            invalidate: true,
-              resource_type: "raw"
-          }, 
-            function(error,result) {
-              // console.log('33333333',result, error)
-            });  
-    }
-
-
-    // console.log(result)
-    await Faculty.findOneAndUpdate({"facultyId":facultyId},{$pull:{"departmentList":{"departmentId":departmentId}}})
-    result = await Faculty.findOne({"facultyId":facultyId})
+    myPromise.then(async ()=>{
+     
+      console.log(result)
+      await Faculty.findOneAndUpdate({"facultyId":facultyId},{$pull:{"departmentList":{"departmentId":departmentId}}})
+      result = await Faculty.findOne({"facultyId":facultyId})
+      res.json({success: true, message: `Department with the ID ${departmentId} has been removed`, result})
+    })
     
   } catch (error) {
   console.log({success: false, error})
     
   }
-  res.json({success: true, message: `Department with the ID ${departmentId} has been removed`, result})
 }
 
