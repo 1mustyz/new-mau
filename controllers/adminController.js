@@ -926,10 +926,10 @@ exports.getAllFacultiesSchoolsCollege = async (req,res, next) => {
 
 
     const result = [
-      faculty,
-      school,
-      college,
-      center
+      {name:'faculty' , list: faculty},
+     {name:'school' , list:  school},
+      {name:'college' , list: college},
+     {name:'center' , list:  center}
     ]
     res.json({success: false, message: [...result]})
 
