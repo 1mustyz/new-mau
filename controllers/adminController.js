@@ -436,7 +436,7 @@ exports.getStatistics = async (req,res,next) => {
       program: centerProgramList.length > 0 ? centerProgramList[0]['NumberOfCount'] : centerProgramList = 0
     }
 
-    res.json({success:true, result:[...result,{departmentList},{programList}]})
+    res.json({success:true, result:[...result,{programList}]})
     
   } catch (error) {
     console.log(error)
@@ -1093,7 +1093,7 @@ exports.removeFaculty = async (req,res,next) => {
     const deleteNestedDocument = async (Document) =>{
       const resultImage = await Document.findOne({[target]:entityId})
 
-      if(activity == 'center'){
+      if(activity == 'center' && resultImage.staffList != null){
         //delete staff image
         resultImage.staffList.map((stf)=>{
   
