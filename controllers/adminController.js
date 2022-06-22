@@ -409,7 +409,7 @@ exports.getStatistics = async (req,res,next) => {
     console.log(collegeDepartmentList,schoolDepartmentList)
 
 
-    const result = await {facultyCount:faculty[0],collegeCount:college[0],schoolCount:school[0],centerCount:center[0]}
+    const result = await [{facultyCount:faculty[0]},{collegeCount:college[0]},{schoolCount:school[0]},{centerCount:center[0]}]
     const departmentList = await {
       NumberOfCount: (facultyDepartmentList.length > 0 ? facultyDepartmentList[0]['NumberOfCount'] : facultyDepartmentList = 0) 
       + (collegeDepartmentList.length > 0 ? collegeDepartmentList[0]['NumberOfCount']  : collegeDepartmentList = 0)
@@ -436,7 +436,7 @@ exports.getStatistics = async (req,res,next) => {
       program: centerProgramList.length > 0 ? centerProgramList[0]['NumberOfCount'] : centerProgramList = 0
     }
 
-    res.json({success:true, result:{...result,departmentList,programList}})
+    res.json({success:true, result:[...result,{departmentList},{programList}]})
     
   } catch (error) {
     console.log(error)
