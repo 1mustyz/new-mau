@@ -19,10 +19,19 @@ const storageFile = multer.diskStorage({
       cb(null, file.fieldname + '-' + Date.now() + file.originalname);
   }
 });
+const storageAllMedia = multer.diskStorage({
+  
+  filename: (req, file, cb) => {
+    const fileExt = file.originalname.split(".").pop();
+    const filename = `${new Date().getTime()}.${fileExt}`;
+    cb(null, filename);
+  },
+});
 
 
 
 module.exports = {
   storage,
-  storageFile
+  storageFile,
+  storageAllMedia
 }

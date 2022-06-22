@@ -16,6 +16,9 @@ router.post('/register-staff',  adminController.registerStaff)
 // create faculty
 router.post('/add-faculty', adminController.addFaculty)
 
+// add downloadables
+router.post('/add-downloadbles', adminController.addDownloadable)
+
 // create main event
 router.put('/create-home-event',  adminController.addHomeEvent)
 
@@ -54,6 +57,9 @@ router.get('/get-single-faculty', adminController.singleFaculty)
 
 // get single department
 router.get('/get-single-department', adminController.getSingleDepartment)
+
+// get single program
+router.get('/get-single-program', adminController.getSingleProgram)
 
 // get all department
 router.get('/get-all-department', adminController.getAllDepartment)

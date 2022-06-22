@@ -11,10 +11,17 @@ const singleFileUpload = multer({
     limits: {fileSize: 80000000 }
 }).single('file');
 
-
+const singleAllMediaUpload = multer({
+  storage: storage.storageAllMedia,
+  limits: {
+    fieldNameSize: 200,
+    fileSize: 30 * 1024 * 1024,
+  }
+}).single("media");
 
   module.exports = {
       singleUpload,
-      singleFileUpload
+      singleFileUpload,
+      singleAllMediaUpload
      
   }

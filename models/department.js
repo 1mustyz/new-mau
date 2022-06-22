@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const ProgramSchema = require('./centerPrograms')
 
 const StaffSchema = Schema({
     staffId: { type: String, required: true, unique: [ true, 'ID Number already exist' ] },
@@ -18,7 +19,7 @@ const DepartmentSchema = Schema({
     mission: {type: String, default:null},
     hod: {type: Object, default:null},
     staffList: [StaffSchema],
-    programs: [{type: Object,default:null}],
+    programs: [ProgramSchema],
 }, { timestamps: true });
 
 module.exports = DepartmentSchema;

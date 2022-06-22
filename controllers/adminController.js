@@ -4,8 +4,9 @@ const Faculty = require('../models/faculty')
 const College = require('../models/college')
 const School = require('../models/school')
 const Center = require('../models/center')
+const Downloadable = require('../models/downloadable')
 const multer = require('multer');
-const {singleUpload,singleFileUpload} = require('../middlewares/filesMiddleware');
+const {singleUpload,singleFileUpload,singleAllMediaUpload} = require('../middlewares/filesMiddleware');
 const { uuid } = require('uuidv4');
 const jwt =require('jsonwebtoken');
 const csv = require('csv-parser')
@@ -336,6 +337,48 @@ exports.addHomeEvent = async (req,res,next) => {
 
   res.json({success: true, message: 'Event created successfullty', result, newlyEvent:evnt});
 }
+
+// add downloadable
+exports.addDownloadable = async(req,res,next) => {
+  singleAllMediaUpload(req, res, async function(err) {
+    if (err instanceof multer.MulterError) {
+      return res.json(err.message);
+    }
+    else if (err) {
+      return res.json(err);
+    }
+    else if (!req.file) {
+      return res.json({"file": req.file, "msg":'Please select a file to upload'});
+    }
+    if(req.file){
+      if(req.file.size > 10000000) return res.json({success: false, message:'File size should not be greater 10mb'})
+      if(req.file.mimetype == 'application/pdf'){
+
+        console.log(req.file,req.body)
+        cloudinary.v2.uploader.upload(req.file.path, 
+          { resource_type: "raw" }, 
+          async function(error, result) {
+            console.log('111111111111111111',result, error); 
+            req.body.downloadLink = result.secure_url
+            req.body.downloadId = randomstring.generate(8)
+            await Downloadable.collection.insertOne(req.body,{new:true})
+            const data = await Downloadable.find({})
+            res.json({success:true, message:data})
+  
+          });
+      }else{
+        res.json({success:false})
+
+      }
+     
+       
+    }
+       
+  });
+
+}
+
+
 
 exports.getHomeEvent = async (req,res, next) => {
   try {
@@ -1037,6 +1080,53 @@ exports.getSingleDepartment = async (req,res, next) => {
    res.json({success: true, message: result,})
 }
 
+// get single department
+exports.getSingleProgram = async (req,res, next) => {
+  const {programId,activity} = req.query
+
+    
+  const singleProgram = async (Document) => {
+    let data =[]
+    if(activity == 'center'){
+
+      let result = await Document.findOne({"programs.programId": programId});
+      result.programs.filter((prg)=>{
+        if(prg.programId == programId) data.push(prg)
+      })
+      return data
+    }else{
+      let result = await Document.findOne({"departmentList.programs.programId": programId},{departmentList:1});
+      result.departmentList.filter((dpt)=>{
+        // console.log(dpt)
+        dpt.programs.filter((prg)=>{
+          console.log(prg)
+
+           if(prg.programId == programId) data.push(prg)
+        })
+      })
+       return data
+  }
+
+
+  }
+
+
+  let result
+  try {
+    if (activity === "faculty") result = await singleProgram(Faculty);
+    else if (activity === "college") result = await singleProgram(College);
+    else if (activity === "school") result = await singleProgram(School);
+    else if (activity === "center") result = await singleProgram(Center);
+
+  } catch (error) {
+    console.log(error)
+  }
+  
+  // console.log(som)
+   res.json({success: true, message: result,})
+}  
+
+
 // get all department
 exports.getAllDepartment = async (req,res, next) => {
 
@@ -1064,6 +1154,7 @@ exports.getAllDepartment = async (req,res, next) => {
   }
   
 }
+
 
 // edit faculty
 exports.editFaculty = async (req,res,next) => {
@@ -1632,6 +1723,9 @@ exports.editDepartmentProgram = async (req,res,next) => {
           "programs.$[e2].mission":program.mission,
           "programs.$[e2].vission":program.vission,
           "programs.$[e2].admissionRequirement":program.admissionRequirement,
+          "programs.$[e2].graduationRequirement":program.graduationRequirement,
+          "programs.$[e2].careerProspect":program.careerProspect,
+
         }},
         { 
           arrayFilters: [
@@ -1647,7 +1741,10 @@ exports.editDepartmentProgram = async (req,res,next) => {
         {$set:{
           "departmentList.$[e1].programs.$[e2].name":program.name,
           "departmentList.$[e1].programs.$[e2].mission":program.mission,
+          "departmentList.$[e1].programs.$[e2].vission":program.vission,
           "departmentList.$[e1].programs.$[e2].admissionRequirement":program.admissionRequirement,
+          "departmentList.$[e1].programs.$[e2].graduationRequirement":program.graduationRequirement,
+          "departmentList.$[e1].programs.$[e2].careerProspect":program.careerProspect,
         }},
         { 
           arrayFilters: [
