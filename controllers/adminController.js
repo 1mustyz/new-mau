@@ -931,7 +931,7 @@ exports.getAllFacultiesSchoolsCollege = async (req,res, next) => {
       college,
       center
     ]
-    res.json({success: false, message: result[0] })
+    res.json({success: false, message: [...result]})
 
 
 
@@ -1122,7 +1122,7 @@ exports.removeFaculty = async (req,res,next) => {
           if (resultImage.programs.length != 0){
             resultImage.programs.map((prm) => {
               console.log(prm)
-              if(prm.brochure != undefined){
+              if(prm.brochure != undefined && prm.brochure != null){
                 const brochureName = prm.brochure.split('/').splice(7)
                     console.log('-----------------',brochureName)
             
