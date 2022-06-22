@@ -907,7 +907,7 @@ const getAllFacultiesOrSchoolOrCollege = async (Document, entityName, entityId )
   try {
    return await Document.aggregate([
      {$match:{}},
-     {$project: {name:`${[entityName]}`,id:`${[entityId]}`,_id:0}},
+     {$project: {"detail":{name: `$${[entityName]}` ,id:`$${[entityId]}`},_id:0}},
     //  {$project: {name:[entityName]},
 
    ])
@@ -1147,69 +1147,73 @@ exports.removeFaculty = async (req,res,next) => {
       }else{
         if(resultImage.departmentList != null && resultImage.departmentList != undefined)
 
-        resultImage.departmentList.map((dpt)=>{
-          console.log(dpt)
-    
-          if (dpt.programs != null && dpt.programs != undefined){
-
-            if (dpt.programs.length != 0){
-                dpt.programs.map((prm) => {
-                console.log(prm)
-                if(prm.brochure != undefined && prm.brochure != null){
-                  const brochureName = prm.brochure.split('/').splice(7)
-                      console.log('-----------------',brochureName)
-              
-                      cloudinary.v2.api.delete_resources_by_prefix(brochureName[0], 
-                      {
-                        invalidate: true,
-                        resource_type: "raw"
-                    }, 
-                      function(error,result) {
-                        console.log(result, error) 
-                      }); 
-                }
-              })
-            }
-          }
-    
-          if (dpt.image != null){
-            const imageNameDep = dpt.image.split('/').splice(7)
-            console.log('-----------------',imageNameDep)
-      
-                cloudinary.v2.api.delete_resources_by_prefix(imageNameDep[0], 
-            {
-              invalidate: true,
-                resource_type: "raw"
-            }, 
-              function(error,result) {
-                // console.log('33333333',result, error)
-            });
-          }
-    
-          
-          console.log(dpt.hod)
-          if (dpt.hod != null){
-            if(dpt.hod.image != null){
-              const imageNameHod = dpt.hod.image.split('/').splice(7)
-              console.log('-----------------',imageNameHod)
+          if(resultImage.departmentList.length !=0 ){
+            resultImage.departmentList.map((dpt)=>{
+              console.log(dpt)
         
-                  cloudinary.v2.api.delete_resources_by_prefix(imageNameHod[0], 
-              {
-                invalidate: true,
-                  resource_type: "raw"
-              }, 
-                function(error,result) {
-                  // console.log('33333333',result, error)
-              });
-            }
-           
-          }
+              if (dpt.programs != null && dpt.programs != undefined){
+    
+                if (dpt.programs.length != 0){
+                    dpt.programs.map((prm) => {
+                    console.log(prm)
+                    if(prm.brochure != undefined && prm.brochure != null){
+                      const brochureName = prm.brochure.split('/').splice(7)
+                          console.log('-----------------',brochureName)
+                  
+                          cloudinary.v2.api.delete_resources_by_prefix(brochureName[0], 
+                          {
+                            invalidate: true,
+                            resource_type: "raw"
+                        }, 
+                          function(error,result) {
+                            console.log(result, error) 
+                          }); 
+                    }
+                  })
+                }
+              }
+        
+              if (dpt.image != null){
+                const imageNameDep = dpt.image.split('/').splice(7)
+                console.log('-----------------',imageNameDep)
           
-        })
+                    cloudinary.v2.api.delete_resources_by_prefix(imageNameDep[0], 
+                {
+                  invalidate: true,
+                    resource_type: "raw"
+                }, 
+                  function(error,result) {
+                    // console.log('33333333',result, error)
+                });
+              }
+        
+              
+              console.log(dpt.hod)
+              if (dpt.hod != null){
+                if(dpt.hod.image != null){
+                  const imageNameHod = dpt.hod.image.split('/').splice(7)
+                  console.log('-----------------',imageNameHod)
+            
+                      cloudinary.v2.api.delete_resources_by_prefix(imageNameHod[0], 
+                  {
+                    invalidate: true,
+                      resource_type: "raw"
+                  }, 
+                    function(error,result) {
+                      // console.log('33333333',result, error)
+                  });
+                }
+               
+              }
+              
+            })
+
+          }
+
       }
 
       // delete faculty image from server
-    if(resultImage.image != null){
+    if(resultImage.image != null && resultImage.image != undefined){
       // console.log('222222','hshsisi')
       
       
@@ -1226,8 +1230,8 @@ exports.removeFaculty = async (req,res,next) => {
       });  
     }
 
-    // delete faculty image from server
-    if(resultImage.dean != null){
+    // delete dean image from server
+    if(resultImage.dean != null && resultImage.dean != undefined){
       // console.log('222222','hshsisi')
       if(resultImage.dean.image != null){
         const imageName = resultImage.dean.image.split('/').splice(7)
