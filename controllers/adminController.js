@@ -905,8 +905,13 @@ exports.addFaculty = async (req,res,next) => {
 // functiion
 const getAllFacultiesOrSchoolOrCollege = async (Document, entityName, entityId ) => {
   try {
-   return await Document.find({},{[entityName]:1,[entityId]:1,_id:0});
-    
+   return await Document.aggregate([
+     {$match:{}},
+     {$project: {name:`${[entityName]}`,id:`${[entityId]}`,_id:0}},
+    //  {$project: {name:[entityName]},
+
+   ])
+  //  ({},{[entityName]:1,[entityId]:1,_id:0});
   } catch (error) {
     console.log(error)
     
@@ -1140,6 +1145,7 @@ exports.removeFaculty = async (req,res,next) => {
         }
         
       }else{
+        if(resultImage.departmentList != null && resultImage.departmentList != undefined)
 
         resultImage.departmentList.map((dpt)=>{
           console.log(dpt)
