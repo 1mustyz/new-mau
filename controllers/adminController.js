@@ -20,6 +20,7 @@ const DOMAIN = "sandbox09949278db4c4a108c6c1d3d1fefe2ff.mailgun.org";
 const mg = mailgun({apiKey: "9bd20544d943a291e8833abd9e0c9908-76f111c4-8a189b96", domain: DOMAIN});
 const bcrypt = require('bcrypt');
 const broc = require('./brochure')
+const { departmentDelete } = require('./deleteDepartment')
 const cloudinarySetup = require('../middlewares/cluadinarySetup')
 
 
@@ -410,6 +411,9 @@ exports.getStatistics = async (req,res,next) => {
 
     const result = await {facultyCount:faculty[0],collegeCount:college[0],schoolCount:school[0],centerCount:center[0]}
     const departmentList = await {
+      NumberOfCount: (facultyDepartmentList.length > 0 ? facultyDepartmentList[0]['NumberOfCount'] : facultyDepartmentList = 0) 
+      + (collegeDepartmentList.length > 0 ? collegeDepartmentList[0]['NumberOfCount']  : collegeDepartmentList = 0)
+      + (schoolDepartmentList.length > 0 ? schoolDepartmentList[0]['NumberOfCount']  : schoolDepartmentList = 0),
       faculty:facultyDepartmentList.length > 0 ? facultyDepartmentList[0]['NumberOfCount'] : facultyDepartmentList = 0, 
       college:collegeDepartmentList.length > 0 ? collegeDepartmentList[0]['NumberOfCount']  : collegeDepartmentList = 0, 
       school:schoolDepartmentList.length > 0 ? schoolDepartmentList[0]['NumberOfCount']  : schoolDepartmentList = 0}
@@ -421,6 +425,11 @@ exports.getStatistics = async (req,res,next) => {
     let centerProgramList = await programCount(Center,'center')
 
     const programList = await {
+      NumberOfCount: (facultyProgramList.length > 0 ? facultyProgramList[0]['NumberOfCount'] : facultyProgramList = 0)
+      +(collegeProgramList.length > 0 ? collegeProgramList[0]['NumberOfCount']  : collegeProgramList = 0)
+      +(schoolProgramList.length > 0 ? schoolProgramList[0]['NumberOfCount']  : schoolProgramList = 0)
+      +(centerProgramList.length > 0 ? centerProgramList[0]['NumberOfCount'] : centerProgramList = 0),
+
       faculty:facultyProgramList.length > 0 ? facultyProgramList[0]['NumberOfCount'] : facultyProgramList = 0, 
       college:collegeProgramList.length > 0 ? collegeProgramList[0]['NumberOfCount']  : collegeProgramList = 0,
       school:schoolProgramList.length > 0 ? schoolProgramList[0]['NumberOfCount']  : schoolProgramList = 0,
@@ -1846,85 +1855,15 @@ exports.removeDepartmentStaff = async (req,res,next) => {
 
 // delete Department
 exports.removeDepartment = async (req,res,next) => {
-  const {departmentId,facultyId} = req.query;
-  let result
+  const {departmentId,activity,facultyId} = req.query;
   try {
-    const resultImage = await Faculty.findOne({"departmentList.departmentId":departmentId},{_id:0,departmentList:1})
-    const bigPromise = () => {
-      const resultImageFilter = resultImage.departmentList.filter((dpt)=>{
-        return dpt.departmentId == departmentId
-      })    
-      
-      console.log(resultImageFilter)
-  
-      // delete all programs brochure
-      const dptPrograms = resultImageFilter[0].programs
-      dptPrograms.map((prm) => {
-        console.log(prm)
-        if(prm.brochure != undefined){
-          const brochureName = prm.brochure.split('/').splice(7)
-              console.log('-----------------',brochureName)
-      
-              cloudinary.v2.api.delete_resources_by_prefix(brochureName[0], 
-              {
-                invalidate: true,
-                resource_type: "raw"
-            }, 
-              function(error,result) {
-                console.log(result, error) 
-              }); 
-        }
-      })
-      // delete hod image from server
-      if(resultImageFilter[0].hod.image != null){
-        // console.log('222222','hshsisi')
-        
-        
-          const imageName = resultImageFilter[0].hod.image.split('/').splice(7)
-          console.log('-----------------',imageName)
-  
-             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-            {
-              invalidate: true,
-                resource_type: "raw"
-            }, 
-              function(error,result) {
-                // console.log('33333333',result, error)
-              });  
-      }
-  
-      // delete department image from server
-      if(resultImageFilter[0].image != null){
-        // console.log('222222','hshsisi')
-        
-        
-          const imageName = resultImageFilter[0].image.split('/').splice(7)
-          console.log('-----------------',imageName)
-  
-             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-            {
-              invalidate: true,
-                resource_type: "raw"
-            }, 
-              function(error,result) {
-                // console.log('33333333',result, error)
-              });  
-      }
-  
-    }
-    
-    const myPromise = new Promise(async (resolve, reject) => {
-      resolve(bigPromise())
-    });
+    if (activity == "faculty")  await departmentDelete(Faculty,departmentId,facultyId,req,res)
+    else if (activity == "college")  await departmentDelete(College,departmentId,facultyId,req,res)
+    else if (activity == "school")  await departmentDelete(School,departmentId,facultyId,req,res)
+    else {
+      res.json({success: false, message: "Wrong parameters"});
 
-    myPromise.then(async ()=>{
-     
-      console.log(result)
-      await Faculty.findOneAndUpdate({"facultyId":facultyId},{$pull:{"departmentList":{"departmentId":departmentId}}})
-      result = await Faculty.findOne({"facultyId":facultyId})
-      res.json({success: true, message: `Department with the ID ${departmentId} has been removed`, result})
-    })
-    
+    } 
   } catch (error) {
   console.log({success: false, error})
     
