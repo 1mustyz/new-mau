@@ -2,15 +2,13 @@ var express = require('express');
 var router = express.Router();
 const adminController = require('../controllers/adminController')
 const passport = require('passport');
+const idChecker = require('../middlewares/idChecker')
 
 
 /** All post request *//////////////////////////////////////////////
 
 // register staff route
 router.post('/register-staff',  adminController.registerStaff)
-
-// change password
-router.post('/change-password', adminController.changePassword)
 
 // create client from a file
 // router.post('/create-client-from-file', adminController.registerClientFromAfile)
@@ -49,7 +47,7 @@ router.get('/get-single-staff', adminController.singleStaff)
 router.get('/get-home-event', adminController.getHomeEvent)
 
 // get all faculties
-router.get('/get-all-faculties', adminController.getAllFaculties)
+router.get('/get-all-faculties-schools-college', adminController.getAllFacultiesSchoolsCollege)
 
 // get single faculty
 router.get('/get-single-faculty', adminController.singleFaculty)
@@ -60,15 +58,15 @@ router.get('/get-single-department', adminController.getSingleDepartment)
 // get all department
 router.get('/get-all-department', adminController.getAllDepartment)
 
+// get all statistics
+router.get('/get-statistics', adminController.getStatistics)
+
 
 // remove event 
 router.put('/remove-event', adminController.removeEvent)
 
 // edit faculty
 router.put('/edit-faculty', adminController.editFaculty)
-
-// edit staff
-router.put('/edit-staff', adminController.editStaff)
 
 // edit dean
 router.put('/edit-dean', adminController.editDean)
@@ -95,7 +93,7 @@ router.put('/add-department', adminController.addDepartment)
 router.put('/add-hod', adminController.addHod)
 
 // add department staff
-router.put('/add-department-staff', adminController.addDepartmentStaff)
+router.put('/add-department-staff', idChecker.checkId, adminController.addDepartmentStaff)
 
 // add department program
 router.put('/add-department-program', adminController.addDepartmentProgram)
@@ -120,9 +118,6 @@ router.put('/remove-department', adminController.removeDepartment)
 
 // remove faculty
 router.delete('/remove-faculty', adminController.removeFaculty)
-
-// remove staff
-router.delete('/remove-staff', adminController.removeStaff)
 
 
 module.exports = router;

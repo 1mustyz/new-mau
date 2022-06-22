@@ -1,12 +1,14 @@
 {
-  "name": "new-mau",
+  "name": "acs",
   "version": "0.0.0",
   "private": true,
+  "main": "app.js",
   "scripts": {
     "start": "node ./bin/www",
     "dev": "nodemon ./bin/www"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
     "cloudinary": "^1.27.1",
     "connect-ensure-login": "^0.1.1",
     "connect-mongo": "^4.6.0",
@@ -37,5 +39,12 @@
     "randomstring": "^1.2.1",
     "uuid": "^8.3.2",
     "uuidv4": "^6.2.12"
+  },
+  "devDependencies": {
+    "eslint": "^8.17.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-n": "^15.2.2",
+    "eslint-plugin-promise": "^6.0.0"
   }
 }

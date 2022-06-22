@@ -6,6 +6,7 @@ const HomePageSchema = Schema({
     newsEvents: [{type: Object}],
     programs: [{type: Object}],
     vc: {type: Object},
+    quickLinks: [{type: Object}]
 }, { timestamps: true });
 
 const HomePage = mongoose.model('homePage', HomePageSchema)

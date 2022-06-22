@@ -8,7 +8,7 @@ const singleUpload = multer({
 
 const singleFileUpload = multer({
     storage: storage.storageFile,
-    limits: {fileSize: 10024 * 10024 }
+    limits: {fileSize: 80000000 }
 }).single('file');
 
 

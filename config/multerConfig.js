@@ -13,7 +13,7 @@ const storage = multer.diskStorage({
 });
 
 const storageFile = multer.diskStorage({
-  
+ 
   // By default, multer removes files extensions so let's add them back
   filename: function(req, file, cb) {
       cb(null, file.fieldname + '-' + Date.now() + file.originalname);

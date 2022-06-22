@@ -16,8 +16,6 @@ const { uuid } = require('uuidv4');
 require('dotenv').config()
 
 const adminRouter = require('./routes/adminRoute')
-var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 
 var app = express();
 app.use(cors())
@@ -98,8 +96,6 @@ passport.deserializeUser(Staff.deserializeUser());
 passport.use(new LocalStrategy(Staff.authenticate()));
 
 app.use('/admin', adminRouter)
-app.use('/', indexRouter);
-app.use('/users', usersRouter);
 
 
 // catch 404 and forward to error handler
