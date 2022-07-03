@@ -11,5 +11,10 @@
         "ecmaVersion": "latest"
     },
     "rules": {
+        "no-unused-vars": "off",
+        "array-bracket-spacing":"off",
+        "spaced-comment":"off",
+        "line-comment-position":"off",
+        "indent":"off"
     }
 }

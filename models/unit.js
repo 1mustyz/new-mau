@@ -2,11 +2,11 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 const CenterProgramsSchema = require('./centerPrograms');
 
-const CenterSchema = Schema({
-    centerId: {type: String, required: true, unique: [ true, 'Center ID already exist' ]},
+const UnitSchema = Schema({
+    unitId: {type: String, required: true, unique: [ true, 'Center ID already exist' ]},
     image: {type: String,default:null},
-    centerName: {type: String,default:null},
-    centerDescription: {type: String,default:null},
+    unitName: {type: String,default:null},
+    unitDescription: {type: String,default:null},
     mission:{type: String,default:null},
     vission:{type: String,default:null},
     shortNote: {type: String,default:null},
@@ -16,5 +16,5 @@ const CenterSchema = Schema({
 
 }, { timestamps: true });
 
-const center = mongoose.model('center', CenterSchema)
-module.exports = center;
+const unit = mongoose.model('unit', UnitSchema)
+module.exports = unit;

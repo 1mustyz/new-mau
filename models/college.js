@@ -4,13 +4,13 @@ const DepartmentSchema = require('./department');
 
 const CollegeSchema = Schema({
     collegeId: {type: String, required: true, unique: [ true, 'College ID already exist' ]},
-    image: {type: String},
-    collegeName: {type: String},
-    collegeDescription: {type: String},
-    shortNote: {type: String},
-    mission: {type: String},
-    vission: {type: String},
-    dean: {type: Object},
+    image: {type: String,default:null},
+    collegeName: {type: String,default:null},
+    collegeDescription: {type: String,default:null},
+    shortNote: {type: String,default:null},
+    mission: {type: String,default:null},
+    vission: {type: String,default:null},
+    dean: {type: Object,default:null},
     departmentList: [DepartmentSchema]
 }, { timestamps: true });
 

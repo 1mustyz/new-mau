@@ -14,9 +14,10 @@ const StaffSchema = Schema({
 const DepartmentSchema = Schema({
     departmentId: {type: String},
     image: {type: String, default:null},
-    departmentName: {type: String},
+    departmentName: {type: String,default:null},
     vission: {type: String, default:null},
     mission: {type: String, default:null},
+    introduction: {type: String, default:null},
     hod: {type: Object, default:null},
     staffList: [StaffSchema],
     programs: [ProgramSchema],

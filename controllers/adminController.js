@@ -1,12 +1,15 @@
+/* eslint-disable no-debugger, no-console */
 const Staff = require('../models/staff')
 const passport = require('passport');
 const Faculty = require('../models/faculty')
 const College = require('../models/college')
 const School = require('../models/school')
 const Center = require('../models/center')
+const Unit = require('../models/unit')
+const Facility = require('../models/facility')
 const Downloadable = require('../models/downloadable')
-const multer = require('multer');
-const {singleUpload,singleFileUpload,singleAllMediaUpload} = require('../middlewares/filesMiddleware');
+const multer = require('multer')
+const { singleUpload, singleFileUpload, singleAllMediaUpload } = require('../middlewares/filesMiddleware')
 const { uuid } = require('uuidv4');
 const jwt =require('jsonwebtoken');
 const csv = require('csv-parser')
@@ -22,7 +25,8 @@ const mg = mailgun({apiKey: "9bd20544d943a291e8833abd9e0c9908-76f111c4-8a189b96"
 const bcrypt = require('bcrypt');
 const broc = require('./brochure')
 const { departmentDelete } = require('./deleteDepartment')
-const cloudinarySetup = require('../middlewares/cluadinarySetup')
+const cloudinarySetup = require('../middlewares/cluadinarySetup');
+const { Result } = require('express-validator');
 
 
 // cloudinary configuration for saving files
@@ -294,7 +298,7 @@ exports.setProfilePic = async (req,res, next) => {
 
 // delete or remove staff
 exports.removeStaff = async (req,res,next) => {
-  const {username} = req.query;
+  const { username } = req.query;
   await Staff.findOneAndDelete({username: username})
   res.json({success: true, message: `staff with the id ${username} has been removed`})
 }
@@ -418,7 +422,7 @@ exports.getStatistics = async (req,res,next) => {
 
     const programCount = async (Document,activity) => {
 
-      if(activity == 'center'){
+      if(activity == 'center' || activity == 'unit'){
 
         return await Document.aggregate([
           {$match:{}},
@@ -444,6 +448,8 @@ exports.getStatistics = async (req,res,next) => {
     const college = await statisticsGenerator(College,"collegeId")
     const school = await statisticsGenerator(School,"schoolId")
     const center = await statisticsGenerator(Center,"centerId")
+    const unit = await statisticsGenerator(Unit,"unitId")
+
 
     let facultyDepartmentList = await departmentCount(Faculty)
     let collegeDepartmentList = await departmentCount(College)
@@ -451,8 +457,29 @@ exports.getStatistics = async (req,res,next) => {
 
     console.log(collegeDepartmentList,schoolDepartmentList)
 
+    console.log(faculty,unit)
 
-    const result = await [{facultyCount:faculty[0]},{collegeCount:college[0]},{schoolCount:school[0]},{centerCount:center[0]}]
+    const result = await [
+      {
+        name:'faculty',
+        count:faculty.length > 0 ? faculty[0]['NumberOfCount'] : 0
+      },
+      {
+        name:'college',
+        count:college.length > 0 ? college[0]['NumberOfCount'] : 0
+      },
+      {
+        name:'school',
+        count:school.length > 0 ? school[0]['NumberOfCount'] : 0
+      },
+      {
+        name:'center',
+        count:center.length > 0 ? center[0]['NumberOfCount'] : 0
+      },
+      {
+        name:'unit',
+        count:unit.length > 0 ? unit[0]['NumberOfCount'] : 0
+      }]
     const departmentList = await {
       NumberOfCount: (facultyDepartmentList.length > 0 ? facultyDepartmentList[0]['NumberOfCount'] : facultyDepartmentList = 0) 
       + (collegeDepartmentList.length > 0 ? collegeDepartmentList[0]['NumberOfCount']  : collegeDepartmentList = 0)
@@ -466,12 +493,15 @@ exports.getStatistics = async (req,res,next) => {
     let collegeProgramList = await programCount(College)
     let schoolProgramList = await programCount(School)
     let centerProgramList = await programCount(Center,'center')
+    let unitProgramList = await programCount(Unit,'unit')
+
 
     const programList = await {
       NumberOfCount: (facultyProgramList.length > 0 ? facultyProgramList[0]['NumberOfCount'] : facultyProgramList = 0)
       +(collegeProgramList.length > 0 ? collegeProgramList[0]['NumberOfCount']  : collegeProgramList = 0)
       +(schoolProgramList.length > 0 ? schoolProgramList[0]['NumberOfCount']  : schoolProgramList = 0)
-      +(centerProgramList.length > 0 ? centerProgramList[0]['NumberOfCount'] : centerProgramList = 0),
+      +(centerProgramList.length > 0 ? centerProgramList[0]['NumberOfCount'] : centerProgramList = 0)
+      +(unitProgramList.length > 0 ? unitProgramList[0]['NumberOfCount'] : unitProgramList = 0),
 
       faculty:facultyProgramList.length > 0 ? facultyProgramList[0]['NumberOfCount'] : facultyProgramList = 0, 
       college:collegeProgramList.length > 0 ? collegeProgramList[0]['NumberOfCount']  : collegeProgramList = 0,
@@ -479,7 +509,7 @@ exports.getStatistics = async (req,res,next) => {
       program: centerProgramList.length > 0 ? centerProgramList[0]['NumberOfCount'] : centerProgramList = 0
     }
 
-    res.json({success:true, result:[...result,{programList}]})
+    res.json({success:true, result:[...result,{name:'program', count: programList['NumberOfCount']}]})
     
   } catch (error) {
     console.log(error)
@@ -488,7 +518,7 @@ exports.getStatistics = async (req,res,next) => {
 
 // Add event pic
 exports.addAnImageToEvent = async (req,res, next) => {
-  const {eventName,eventId,activity,facultyId,departmentId} = req.query
+  const {eventName,eventId,activity,facultyId,departmentId,target,subActivity,facilityId,serviceToolId} = req.query
   let allResults
   try {
     fs.rmSync('./public/images', { recursive: true });
@@ -613,8 +643,10 @@ exports.addAnImageToEvent = async (req,res, next) => {
        
   
   
-        }else if(activity == "faculty"){
-          const result = await Faculty.findOne({facultyId},{_id: 0,image: 1})
+        }else if(activity == "academics"){
+          console.log(activity)
+          const facultyImage = async (Document) => {
+            const result = await Document.findOne({[target]:facultyId},{_id: 0,image: 1})
           
          
           console.log(result.image)
@@ -638,10 +670,16 @@ exports.addAnImageToEvent = async (req,res, next) => {
           cloudinary.v2.uploader.upload(req.file.path, 
           { resource_type: "raw" }, 
           async function(error, result) {
-            // console.log('444444',result, error); 
+            console.log('444444',result, error); 
   
-              await Faculty.findOneAndUpdate({facultyId},{$set: {"image": result.secure_url}},{new:true})
-              const allResults = await Faculty.find({},{dean:0,departmentList:0})
+              await Document.findOneAndUpdate({[target]:facultyId},{$set: {"image": result.secure_url}},{new:true})
+              let allResults 
+              if(subActivity == 'center'){
+                allResults = await Document.find({},{dean:0,programs:0,staffList:0})
+              }else{
+                allResults = await Document.find({},{dean:0,departmentList:0})
+                
+              }
            
             
             res.json({success: true,
@@ -651,10 +689,19 @@ exports.addAnImageToEvent = async (req,res, next) => {
             );
           });
        
-  
+
+          }
+          if (subActivity === "faculty") await  facultyImage(Faculty);
+          else if (subActivity === "college") await  facultyImage(College);
+          else if (subActivity === "school") await facultyImage(School);
+          else if (subActivity === "center") await facultyImage(Center);
+          else {
+            res.json({success: false, message: 'Wrong parameters'})
+          }
   
         }else if(activity == "dean"){
-          const result = await Faculty.findOne({facultyId},{_id: 0,dean: 1})
+          const deanImage = async (Document) => {
+            const result = await Document.findOne({[target]:facultyId},{_id: 0,dean: 1})
           
          
           console.log(result.dean.image)
@@ -680,9 +727,14 @@ exports.addAnImageToEvent = async (req,res, next) => {
           async function(error, result) {
             // console.log('444444',result, error); 
   
-              await Faculty.findOneAndUpdate({facultyId},{$set: {"dean.image": result.secure_url}},{new:true})
-              const allResults = await Faculty.find({facultyId})
-           
+              await Document.findOneAndUpdate({[target]:facultyId},{$set: {"dean.image": result.secure_url}},{new:true})
+              let allResults 
+              if(subActivity == 'center'){
+                allResults = await Document.find({[target]:facultyId},{programs:0,staffList:0})
+              }else{
+                allResults = await Document.find({[target]:facultyId},{departmentList:0})
+
+              }
             
             res.json({success: true,
               message: allResults,
@@ -691,12 +743,60 @@ exports.addAnImageToEvent = async (req,res, next) => {
             );
           });
   
-        }else if(activity == "department"){
-          const result = await Faculty.findOne({"departmentList.departmentId":departmentId},{_id: 0,departmentList:1})
-          resultFilter = result.departmentList.filter((dpt)=>{
-            return dpt.departmentId == departmentId
-          })
+          }
+
+          if (subActivity === "faculty") await  deanImage(Faculty);
+          else if (subActivity === "college") await  deanImage(College);
+          else if (subActivity === "school") await deanImage(School);
+          else if (subActivity === "center") await deanImage(Center);
+          else {
+            res.json({success: false, message: 'Wrong parameters'})
+          }
           
+        }else if(activity == "facilityDirector"){
+          const result = await Facility.findOne({facilityId},{_id: 0,director: 1})
+         
+          console.log(result.director.image)
+          if(result.director.image != null){
+          // console.log('222222','hshsisi')
+            
+          const imageName = result.director.image.split('/').splice(7)
+          console.log('-----------------',imageName)
+  
+             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+            {
+              invalidate: true,
+                resource_type: "raw"
+            }, 
+              function(error,result) {
+                // console.log('33333333',result, error)
+              });  
+          }
+  
+          cloudinary.v2.uploader.upload(req.file.path, 
+          { resource_type: "raw" }, 
+          async function(error, result) {
+            // console.log('444444',result, error); 
+  
+              await Facility.findOneAndUpdate({facilityId},{$set: {"director.image": result.secure_url}},{new:true})
+              let allResults = await Facility.find({facilityId},{_id:0})
+
+            
+            res.json({success: true,
+              message: allResults,
+                        },
+            
+            );
+          });
+  
+          
+        }else if(activity == "serviceTool"){
+          const result = await Facility.findOne({"service.serviceTools.serviceToolsId":'1dCqPdiV'},{_id: 0})
+         
+          console.log(result)
+          resultFilter = result.service.filter((serviceTool)=>{
+            return serviceTool.serviceToolId == serviceToolId
+          })
           console.log(resultFilter[0].image)
           if(resultFilter[0].image != null){
           // console.log('222222','hshsisi')
@@ -705,7 +805,7 @@ exports.addAnImageToEvent = async (req,res, next) => {
           const imageName = resultFilter[0].image.split('/').splice(7)
           console.log('-----------------',imageName)
   
-             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+            cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
             {
               invalidate: true,
                 resource_type: "raw"
@@ -720,9 +820,9 @@ exports.addAnImageToEvent = async (req,res, next) => {
           async function(error, result) {
             // console.log('444444',result, error); 
   
-              await Faculty.findOneAndUpdate({"departmentList.departmentId":departmentId},{$set: {"departmentList.$.image": result.secure_url}},{new:true})
-              const allResults = await Faculty.find({"departmentList.departmentId":departmentId})
-           
+              await Facility.findOneAndUpdate({"service.serviceTools.serviceToolId":serviceToolId},{$set: {"service.$.serviceTools.$.image": result.secure_url}},{new:true})
+              let allResults = await Facility.find({"service.serviceTools.serviceToolId":serviceToolId},{_id:0})
+
             
             res.json({success: true,
               message: allResults,
@@ -730,47 +830,146 @@ exports.addAnImageToEvent = async (req,res, next) => {
             
             );
           });
+  
+          
+        }else if(activity == "department"){
+          const departmentImage = async(Document) => {
+              const result = await Document.findOne({"departmentList.departmentId":departmentId},{_id: 0,departmentList:1})
+            resultFilter = result.departmentList.filter((dpt)=>{
+              return dpt.departmentId == departmentId
+            })
+            
+            console.log(resultFilter[0].image)
+            if(resultFilter[0].image != null){
+            // console.log('222222','hshsisi')
+    
+              
+            const imageName = resultFilter[0].image.split('/').splice(7)
+            console.log('-----------------',imageName)
+    
+              cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+              {
+                invalidate: true,
+                  resource_type: "raw"
+              }, 
+                function(error,result) {
+                  // console.log('33333333',result, error)
+                });  
+            }
+    
+            cloudinary.v2.uploader.upload(req.file.path, 
+            { resource_type: "raw" }, 
+            async function(error, result) {
+              // console.log('444444',result, error); 
+    
+                await Document.findOneAndUpdate({"departmentList.departmentId":departmentId},{$set: {"departmentList.$.image": result.secure_url}},{new:true})
+                const allResults = await Document.find({"departmentList.departmentId":departmentId})
+            
+              
+              res.json({success: true,
+                message: allResults,
+                          },
+              
+              );
+            });
+          }
+
+          if (subActivity === "faculty") await  departmentImage(Faculty);
+          else if (subActivity === "college") await  departmentImage(College);
+          else if (subActivity === "school") await departmentImage(School);
+          else {
+            res.json({success: false, message: 'Wrong parameters'})
+          }
   
         }else if(activity == "hod"){
-          const result = await Faculty.findOne({"departmentList.departmentId":departmentId},{_id: 0,departmentList:1})
-          resultFilter = result.departmentList.filter((dpt)=>{
-            return dpt.departmentId == departmentId
-          })
+          console.log(activity,subActivity)
+          const hodImage = async(Document) => {
+              const result = await Document.findOne({"departmentList.departmentId":departmentId},{_id: 0,departmentList:1})
+              resultFilter = result.departmentList.filter((dpt)=>{
+                return dpt.departmentId == departmentId
+              })
+              console.log(resultFilter)
+              console.log(resultFilter[0].hod.image)
+              if(resultFilter[0].hod.image != null){
+              // console.log('222222','hshsisi')
+      
+                
+              const imageName = resultFilter[0].image.split('/').splice(7)
+              console.log('-----------------',imageName)
+      
+                cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+                {
+                  invalidate: true,
+                    resource_type: "raw"
+                }, 
+                  function(error,result) {
+                    // console.log('33333333',result, error)
+                  });  
+              }
+      
+              cloudinary.v2.uploader.upload(req.file.path, 
+              { resource_type: "raw" }, 
+              async function(error, result) {
+                // console.log('444444',result, error); 
+      
+                  await Document.findOneAndUpdate({"departmentList.departmentId":departmentId},{$set: {"departmentList.$.hod.image": result.secure_url}},{new:true})
+                  const allResults = await Document.find({"departmentList.departmentId":departmentId})
+              
+                
+                res.json({success: true,
+                  message: allResults,
+                            },
+                
+                );
+              });
+
+              
+            }
+            if (subActivity == "faculty") await  hodImage(Faculty);
+            else if (subActivity == "college") await  hodImage(College);
+            else if (subActivity == "school") await hodImage(School);
+            else {
+              res.json({success: false, message: 'Wrong parameters'})
+            }
+        }else if (activity === 'facility'){
+            const result = await Facility.findOne({facilityId},{_id: 0,image:1})
+            
+            console.log(result)
+            if(result.image != null){
+            // console.log('222222','hshsisi')
+    
+              
+            const imageName = result.image.split('/').splice(7)
+            console.log('-----------------',imageName)
+    
+              cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+              {
+                invalidate: true,
+                  resource_type: "raw"
+              }, 
+                function(error,result) {
+                  // console.log('33333333',result, error)
+                });  
+            }
+    
+            cloudinary.v2.uploader.upload(req.file.path, 
+            { resource_type: "raw" }, 
+            async function(error, result) {
+              // console.log('444444',result, error); 
+    
+                await Facility.findOneAndUpdate({facilityId},{$set: {"image": result.secure_url}},{new:true})
+                const allResults = await Facility.find({facilityId})
+            
+              
+              res.json({success: true,
+                message: allResults,
+                          },
+              
+              );
+            });
+
+            
           
-          console.log(resultFilter[0].hod.image)
-          if(resultFilter[0].hod.image != null){
-          // console.log('222222','hshsisi')
-  
-            
-          const imageName = resultFilter[0].image.split('/').splice(7)
-          console.log('-----------------',imageName)
-  
-             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-            {
-              invalidate: true,
-                resource_type: "raw"
-            }, 
-              function(error,result) {
-                // console.log('33333333',result, error)
-              });  
-          }
-  
-          cloudinary.v2.uploader.upload(req.file.path, 
-          { resource_type: "raw" }, 
-          async function(error, result) {
-            // console.log('444444',result, error); 
-  
-              await Faculty.findOneAndUpdate({"departmentList.departmentId":departmentId},{$set: {"departmentList.$.hod.image": result.secure_url}},{new:true})
-              const allResults = await Faculty.find({"departmentList.departmentId":departmentId})
-           
-            
-            res.json({success: true,
-              message: allResults,
-                        },
-            
-            );
-          });
-  
         }else {
           res.json({success: false, message: "Pls input correct activity", }, );
         }
@@ -793,9 +992,9 @@ exports.editEvent = async (req,res,next) => {
   const {eventId,evnt,eventName} = req.body;
   if(eventName == "mainEvents"){
 
-    allEvents = await HomePage.findOneAndUpdate({"mainEvents.evntId": eventId},{$set: {"mainEvents.$.header": evnt.header, "mainEvents.$.description": evnt.description, "mainEvents.$.description": evnt.subHeader}},{new:true})
+    allEvents = await HomePage.findOneAndUpdate({"mainEvents.evntId": eventId},{$set: {"mainEvents.$.header": evnt.header, "mainEvents.$.description": evnt.description, "mainEvents.$.subHeader": evnt.subHeader}},{new:true})
   }else if(eventName == "newsEvents"){
-    allEvents = await HomePage.findOneAndUpdate({"newsEvents.evntId": eventId},{$set: {"newsEvents.$.header": evnt.header, "newsEvents.$.description": evnt.description, "newsEvents.$.description": evnt.subHeader}},{new:true})
+    allEvents = await HomePage.findOneAndUpdate({"newsEvents.evntId": eventId},{$set: {"newsEvents.$.header": evnt.header, "newsEvents.$.description": evnt.description, "newsEvents.$.subHeader": evnt.subHeader}},{new:true})
   }else if (eventNamee == "programs"){
     allEvents = await HomePage.findOneAndUpdate({"programs.evntId": eventId},{$set: {"programs.$.header": evnt.header, "programs.$.description": evnt.description,"programs.$.subHeader": evnt.subHeader}},{new:true})
 
@@ -899,8 +1098,10 @@ exports.addFaculty = async (req,res,next) => {
   else if (status === 'college') entity.collegeId = randomstring.generate(8)
   else if (status === 'school') entity.schoolId = randomstring.generate(8)
   else if (status === 'center') entity.centerId = randomstring.generate(8)
+  else if (status === 'unit') entity.unitId = randomstring.generate(8)
+
   
-  if (status === 'center'){
+  if (status === 'center' || status === 'unit'){
     entity.programs = []
     entity.staffList = []
 
@@ -917,15 +1118,17 @@ exports.addFaculty = async (req,res,next) => {
       let insertedResult
       await Document.collection.insertOne(entity)
 
-      if (status == 'center') insertedResult = await Document.find({},{dean:0, programs:0, staffList:0})
+      if (status == 'center' || status === 'unit') insertedResult = await Document.find({},{dean:0, programs:0, staffList:0})
       else insertedResult = await Document.find({},{dean:0, departmentList:0})
       
       const faculty = await Faculty.find({},{_id:0, facultyName:1, facultyId:1})
       const school = await School.find({},{_id:0, schoolName:1, schoolId:1})
       const college = await College.find({},{_id:0, collegeName:1, collegeId:1})
       const center = await Center.find({},{_id:0,centerName:1, centerId:1})
+      const unit = await Unit.find({},{_id:0,unitName:1, unitId:1})
 
-      result = {faculties:faculty, schools:school, colleges:college, centers:center}
+
+      result = {faculties:faculty, schools:school, colleges:college, centers:center, units:unit}
 
       res.json({success: true, message, result, insertedResult});
 
@@ -934,6 +1137,8 @@ exports.addFaculty = async (req,res,next) => {
     else if (status === 'college') inserter(College,'College created successfully')
     else if (status === 'school') inserter(School, 'School created successfully')
     else if (status === 'center') inserter(Center, 'Center created successfully')
+    else if (status === 'unit') inserter(Center, 'Center created successfully')
+
     else {
       res.json({success: false, message: 'Incorrect status'});
 
@@ -944,6 +1149,64 @@ exports.addFaculty = async (req,res,next) => {
     
   }
 }
+
+// register a client from a file
+exports.createFacultyFromAfile = async (req,res,next) => {
+  const {activity} = req.query
+
+  const inserter = []
+  const inserterFunction = async(Document,patth) => {
+    fs.createReadStream(patth)
+    .pipe(csv({}))
+    .on('data', (data)=> inserter.push(data))
+    .on('end', async () => {
+      // console.log(inserter)
+      inserter.map(dct => {
+        dct[`${activity}Id`] = randomstring.generate(8)
+      })
+      // console.log(inserter)
+      await Document.insertMany(inserter)
+      const documents = await Document.find({})
+
+      try {
+        fs.unlinkSync(patth)
+        //file removed
+      } catch(err) {
+        console.error(err)
+      }
+      res.json({success:true, message:documents})
+    })
+
+  }
+
+  singleFileUpload(req, res, async function(err) {
+    if (err instanceof multer.MulterError) {
+    return res.json(err.message);
+    }
+    else if (err) {
+      return res.json(err);
+    }
+    else if (!req.file) {
+      return res.json({"file": req.file, "msg":'Please select file to upload'});
+    }
+    if(req.file){
+        console.log('-----',req.file.path)
+        if (activity === "faculty") await  inserterFunction(Faculty,req.file.path);
+        else if (activity === "college") await  inserterFunction(College,req.file.path);
+        else if (activity === "school") await inserterFunction(School,req.file.path);
+        else if (activity === "center") await inserterFunction(Center,req.file.path);
+        else if (activity === "unit") await inserterFunction(Unit,req.file.path);
+        else {
+          res.json({success: false, message: 'Wrong parameters'})
+        }
+        
+       
+    }
+    });    
+
+
+}
+
 
 // functiion
 const getAllFacultiesOrSchoolOrCollege = async (Document, entityName, entityId ) => {
@@ -962,6 +1225,92 @@ const getAllFacultiesOrSchoolOrCollege = async (Document, entityName, entityId )
 
 }
 
+// add facilities
+exports.addFacilities = async (req,res,next) => {
+  req.body.facilityId = randomstring.generate(8)
+
+  try {
+    await Facility.collection.insertOne(req.body,{new:true})
+    const result = await Facility.find()
+    res.json({success: true, result})
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// add facility services
+exports.addFacilityService = async (req,res,next) => {
+  const { service, facilityId } = req.body
+  service.serviceId = randomstring.generate(8)
+
+  console.log(service)
+
+  try {
+    await Facility.findOneAndUpdate({facilityId},{$push:{"service":service}})
+    const result = await Facility.find()
+
+    res.json({sucess:true, result})
+
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// add facility description
+exports.addFacilityServiceDescription = async (req,res,next) => {
+  const {serviceId, description} = req.body
+  description.descriptionId = randomstring.generate(8)
+  console.log(description)
+
+  try {
+    await Facility.findOneAndUpdate({'service.serviceId':serviceId},{$push:{'service.$.description':description}})
+    const result = await Facility.find({'service.serviceId':serviceId})
+    res.json({success:true,result})
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+// add facility serviceTools
+exports.addFacilityServiceTools = async (req,res,next) => {
+  const {serviceId, serviceTool} = req.body
+  serviceTool.serviceToolId = randomstring.generate(8)
+  serviceTool.image = null
+  console.log(serviceTool)
+
+  try {
+    await Facility.findOneAndUpdate({'service.serviceId':serviceId},{$push:{'service.$.serviceTools':serviceTool}})
+    const result = await Facility.find({'service.serviceId':serviceId})
+    res.json({success:true,result})
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+
+// get all facilities
+exports.getAllFacilities = async (req,res,next) => {
+  console.log('hello')
+
+  try {
+    const result = await Facility.find()
+    res.json({success: true, result})
+  } catch (error) {
+    console.log(error)
+  }
+}
+
+exports.getSingleFacility = async (req,res,next) => {
+  const { facilityId } = req.query
+
+  try {
+    const result = await Facility.findOne({facilityId})
+    res.json({success:true,result})
+  } catch (error) {
+    console.log(error)
+  }
+}
+
 // getall faculties
 exports.getAllFacultiesSchoolsCollege = async (req,res, next) => {
 
@@ -971,13 +1320,17 @@ exports.getAllFacultiesSchoolsCollege = async (req,res, next) => {
     const school = await getAllFacultiesOrSchoolOrCollege(School, "schoolName", "schoolId")
     const college = await getAllFacultiesOrSchoolOrCollege(College, "collegeName", "collegeId")
     const center = await getAllFacultiesOrSchoolOrCollege(Center, "centerName", "centerId")
+    const unit = await getAllFacultiesOrSchoolOrCollege(Unit, "unitName", "unitId")
+
 
 
     const result = [
       {name:'faculty' , list: faculty},
      {name:'school' , list:  school},
       {name:'college' , list: college},
-     {name:'center' , list:  center}
+     {name:'center' , list:  center},
+     {name:'unit' , list:  unit}
+
     ]
     res.json({success: false, message: [...result]})
 
@@ -1002,13 +1355,17 @@ exports.singleFaculty = async (req,res, next) => {
     else if (activity === "college") result = await College.findOne({[target]:eventId});
     else if (activity === "school") result = await School.findOne({[target]:eventId});
     else if (activity === "center") result = await Center.findOne({[target]:eventId});
+    else if (activity === "unit") result = await Unit.findOne({[target]:eventId});
 
+    else {
+      res.json({success: false, message: 'Wrong parameters'})
+    }
 
     
     let resulty
     
     if (result){
-      if (activity == "center"){
+      if (activity == "center" || activity == "unit"){
         const programList = result.programs.map((prg)=>{
           return {
             "programName":prg.programName,
@@ -1087,7 +1444,7 @@ exports.getSingleProgram = async (req,res, next) => {
     
   const singleProgram = async (Document) => {
     let data =[]
-    if(activity == 'center'){
+    if(activity == 'center' || activity == 'unit'){
 
       let result = await Document.findOne({"programs.programId": programId});
       result.programs.filter((prg)=>{
@@ -1117,6 +1474,11 @@ exports.getSingleProgram = async (req,res, next) => {
     else if (activity === "college") result = await singleProgram(College);
     else if (activity === "school") result = await singleProgram(School);
     else if (activity === "center") result = await singleProgram(Center);
+    else if (activity === "unit") result = await singleProgram(Unit);
+    else{
+      res.json({success: false, message: 'Wrong activity',})
+
+    }
 
   } catch (error) {
     console.log(error)
@@ -1172,6 +1534,12 @@ exports.editFaculty = async (req,res,next) => {
     else if (activity == "college") result = await editEntity(College);
     else if (activity == "school") result = await editEntity(School);
     else if (activity == "center") result = await editEntity(Center);
+    else if (activity == "unit") result = await editEntity(Unit);
+    else {
+    res.json({success: false, message: 'Wrong parameters'})
+
+    }
+
 
     res.json({success: true, message: `Faculty with the ID ${entityId} has been edited`,result})
   } catch (error) {
@@ -1189,7 +1557,7 @@ exports.removeFaculty = async (req,res,next) => {
     const deleteNestedDocument = async (Document) =>{
       const resultImage = await Document.findOne({[target]:entityId})
 
-      if(activity == 'center' && resultImage.staffList != null){
+      if((activity == 'center' || activity == 'unit') && resultImage.staffList != null){
         //delete staff image
         resultImage.staffList.map((stf)=>{
   
@@ -1352,7 +1720,7 @@ exports.removeFaculty = async (req,res,next) => {
   
       myPromise.then(async ()=>{
         await Document.findOneAndDelete({[target]: entityId})
-        result = activity == "center" ?  await Document.find({},{dean:0,programs:0,staffList:0}) : await Document.find({},{dean:0,departmentList:0})
+        result = (activity == "center" || activity == "unit") ?  await Document.find({},{dean:0,programs:0,staffList:0}) : await Document.find({},{dean:0,departmentList:0})
         res.json({success: true, message: `Faculty with the ID ${entityId} has been removed`, result})
   
       })
@@ -1362,8 +1730,12 @@ exports.removeFaculty = async (req,res,next) => {
     else if (activity == "college") await doDelete(College);
     else if (activity == "school") await doDelete(School);
     else if (activity == "center") await doDelete(Center);
+    else if (activity == "unit") await doDelete(Unit);
+    else{
+      res.json({success: false, message:'Wrong parameters'})
+
+    }
         
-    
     
     // console.log(resultImageFilter)
    
@@ -1385,7 +1757,7 @@ exports.addDean = async (req,res,next) => {
   
   const createDean = async (Document) => {
     await Document.findOneAndUpdate({[target]:entityId},{"dean":dean},{new:true})
-    return activity == 'center' 
+    return (activity == 'center' || activity == 'unit') 
     ? await Document.findOne({[target]:entityId},{_id:0, "staffList.password":0})
     : await Document.findOne({[target]:entityId},{_id:0, "departmentList.staffList.password":0})
 
@@ -1396,6 +1768,7 @@ exports.addDean = async (req,res,next) => {
     else if (activity == "college") result = await createDean(College);
     else if (activity == "school") result = await createDean(School);
     else if (activity == "center") result = await createDean(Center);
+    else if (activity == "unit") result = await createDean(Unit);
     else {
       res.json({success:false, message:'wrong parameters'})
     }
@@ -1405,6 +1778,24 @@ exports.addDean = async (req,res,next) => {
   }
   res.json({success: true, message: 'Dean created successfullty', result});
 }
+
+// add facility director
+exports.addFaciltyDirector = async (req,res,next) => {
+  const {director} = req.body
+  const {facilityId} = req.query
+  director.image = null
+  let result
+
+  try {
+    await Facility.findOneAndUpdate({facilityId},{"director":director},{new:true})
+    await Facility.findOne({facilityId},{_id:0})
+  } catch (error) {
+  console.log(error);
+    
+  }
+  res.json({success: true, message: 'Facility Director created successfullty', result});
+}
+
 
 // edit dean
 exports.editDean = async (req,res,next) => {
@@ -1425,6 +1816,7 @@ exports.editDean = async (req,res,next) => {
     else if (activity == "college") result = await deanEdit(College);
     else if (activity == "school") result = await deanEdit(School);
     else if (activity == "center") result = await deanEdit(Center);
+    else if (activity == "unit") result = await deanEdit(Unit);
     else {
       res.json({success:false, message:'wrong parameters'})
     }
@@ -1470,8 +1862,9 @@ exports.removeDean = async (req,res,next) => {
     else if (activity == "college") result = await deanRemove(College);
     else if (activity == "school") result = await deanRemove(School);
     else if (activity == "center") result = await deanRemove(Center);
+    else if (activity == "unit") result = await deanRemove(Unit);
     else {
-      res.json({success:false, message:'Wrong activity'})
+      res.json({success:false, message:'Wrong parameters'})
     }
     
   } catch (error) {
@@ -1506,6 +1899,63 @@ exports.addDepartment = async (req,res,next) => {
   }
   res.json({success: true, message: 'Department created successfullty', result});
 }
+
+// register a department from a file
+exports.createDepartmentFromAfile = async (req,res,next) => {
+  const {activity,target,eventId} = req.query
+
+  const inserter = []
+  const inserterFunction = async(Document,patth) => {
+    fs.createReadStream(patth)
+    .pipe(csv({}))
+    .on('data', (data)=> inserter.push(data))
+    .on('end', async () => {
+      // console.log(inserter)
+      inserter.map(async(dct) => {
+        dct[`departmentId`] = randomstring.generate(8)
+        await Document.findOneAndUpdate({[target]:eventId},{$push:{"departmentList":dct}})
+      })
+      console.log(inserter)
+      // await Document.insertMany(inserter)
+
+      const documents = await Document.find({})
+
+      try {
+        fs.unlinkSync(patth)
+        //file removed
+      } catch(err) {
+        console.error(err)
+      }
+      res.json({success:true, message:documents})
+    })
+
+  }
+
+  singleFileUpload(req, res, async function(err) {
+    if (err instanceof multer.MulterError) {
+    return res.json(err.message);
+    }
+    else if (err) {
+      return res.json(err);
+    }
+    else if (!req.file) {
+      return res.json({"file": req.file, "msg":'Please select file to upload'});
+    }
+    if(req.file){
+        console.log('-----',req.file.path)
+        if (activity === "faculty") await  inserterFunction(Faculty,req.file.path);
+        else if (activity === "college") await  inserterFunction(College,req.file.path);
+        else if (activity === "school") await inserterFunction(School,req.file.path);
+        else {
+          res.json({success: false, message: 'Wrong parameters'})
+        }
+        
+       
+    }
+    });    
+
+}
+
 
 // edit department
 exports.editDepartment = async (req,res,next) => {
@@ -1580,10 +2030,12 @@ exports.addDepartmentStaff = async (req,res,next) => {
   
   const createAcademicStaff = async (Document) => {
 
-    if(activity == 'center'){
+    if(activity == 'center' || activity == 'unit'){
 
-      await Document.findOneAndUpdate({centerId:entityId},{$push:{"staffList":staff}},{new:true})
-      return await Document.findOne({centerId: entityId},{_id:0,"staffList.password":0});
+      let target = activity+'Id'
+
+      await Document.findOneAndUpdate({[target]:entityId},{$push:{"staffList":staff}},{new:true})
+      return await Document.findOne({[target]: entityId},{_id:0,"staffList.password":0});
       
     }else{
       await Document.findOneAndUpdate({"departmentList.departmentId":entityId},{$push:{"departmentList.$.staffList":staff}},{new:true})
@@ -1602,6 +2054,7 @@ exports.addDepartmentStaff = async (req,res,next) => {
     else if (activity == "college") result = await createAcademicStaff(College)
     else if (activity == "school") result = await createAcademicStaff(School)
     else if (activity == "center") result = await createAcademicStaff(Center)
+    else if (activity == "unit") result = await createAcademicStaff(Unit)
     else {
       res.json({success: false, message: "Wrong parameters"});
 
@@ -1621,9 +2074,9 @@ exports.addDepartmentProgram = async (req,res,next) => {
   program.programId = randomstring.generate(8)
 
   const addProgam = async (Document) => {
-    if(activity == 'center'){
-
-     return await Document.findOneAndUpdate({centerId:entityId},{$push:{"programs":program}},{new:true})
+    if(activity == 'center' || activity == 'unit'){
+      let target = activity+'Id'
+     return await Document.findOneAndUpdate({[target]:entityId},{$push:{"programs":program}},{new:true})
       
     }
     else{
@@ -1643,6 +2096,8 @@ exports.addDepartmentProgram = async (req,res,next) => {
     else if (activity == "college") result = await addProgam(College)
     else if (activity == "school") result = await addProgam(School)
     else if (activity == "center") result = await addProgam(Center)
+    else if (activity == "unit") result = await addProgam(Unit)
+
     else {
       res.json({success: false, message: "Wrong parameters"});
 
@@ -1654,6 +2109,84 @@ exports.addDepartmentProgram = async (req,res,next) => {
   res.json({success: true, message: 'Program created successfullty', result});
 }
 
+// create programs from a file
+exports.createProgranFromAfile = async (req,res,next) => {
+  const {activity,entityId} = req.query
+
+  const inserter = []
+  const inserterFunction = async(Document,patth) => {
+    fs.createReadStream(patth)
+    .pipe(csv({}))
+    .on('data', (data)=> inserter.push(data))
+    .on('end', async () => {
+      // console.log(inserter)
+      inserter.map(async(prg) => {
+        prg[`programId`] = randomstring.generate(8)
+        prg['admissionRequirement'] = [ prg['admissionRequirement1'].toString()]
+        prg['graduationRequirement'] = [ prg['graduationRequirement'].toString()]
+        let dt = {
+          name: prg.programName.toString(),
+          admissionRequirement: prg.admissionRequirement,
+          careerProspect: prg.careerProspect.toString(),
+          graduationRequirement: prg.graduationRequirement,
+          type: prg.programType.toString(),
+          programId: prg.programId.toString(),
+          programDuration: prg.programDuration.toString()
+        }
+        if(activity == 'center' || activity == 'unit'){
+          let target = activity+'Id'
+
+          await Document.findOneAndUpdate({[target]:entityId},{$push:{"programs":dt}},{new:true})
+         }
+         else{
+           await Document.findOneAndUpdate({"departmentList.departmentId":entityId},{$push:{"departmentList.$.programs":dt}},{new:true})
+         }
+      console.log(dt)
+      })
+      // await Document.insertMany(inserter)
+
+      const documents = await Document.find({})
+
+      try {
+        fs.unlinkSync(patth)
+        //file removed
+      } catch(err) {
+        console.error(err)
+      }
+      res.json({success:true, message:documents})
+    })
+
+  }
+
+  singleFileUpload(req, res, async function(err) {
+    if (err instanceof multer.MulterError) {
+    return res.json(err.message);
+    }
+    else if (err) {
+      return res.json(err);
+    }
+    else if (!req.file) {
+      return res.json({"file": req.file, "msg":'Please select file to upload'});
+    }
+    if(req.file){
+        console.log('-----',req.file.path)
+        if (activity === "faculty") await  inserterFunction(Faculty,req.file.path);
+        else if (activity === "college") await  inserterFunction(College,req.file.path);
+        else if (activity === "school") await inserterFunction(School,req.file.path);
+        else if (activity === "center") await inserterFunction(Center,req.file.path);
+        else if (activity === "unit") await inserterFunction(Unit,req.file.path);
+        else {
+          res.json({success: false, message: 'Wrong parameters'})
+        }
+        
+       
+    }
+  })
+
+}
+
+
+
 // add brochure
 exports.addProgramBrochure = async (req,res,next) => {
   const {programId,departmentId,activity} = req.query
@@ -1663,6 +2196,7 @@ exports.addProgramBrochure = async (req,res,next) => {
     else if (activity == "college")  await broc.addBrochure(College,activity,programId,departmentId,req,res)
     else if (activity == "school")  await broc.addBrochure(School,activity,programId,departmentId,req,res)
     else if (activity == "center")  await broc.addBrochure(Center,activity,programId,departmentId,req,res)
+    else if (activity == "unit")  await broc.addBrochure(Unit,activity,programId,departmentId,req,res)
     else {
       res.json({success: false, message: "Wrong parameters"});
 
@@ -1686,8 +2220,9 @@ exports.editHod = async (req,res,next) => {
      await Document.findOneAndUpdate(
       {"departmentList.departmentId":departmentId},
       {$set:{
-        "departmentList.$.hod.name":hod.name,
-        "departmentList.$.hod.qualification":hod.qualification,
+        "departmentList.$.hod.vission":hod.name,
+        "departmentList.$.hod.mission":hod.qualification,
+
       }},{new:true})
       return await Document.findOne({"departmentList.departmentId":departmentId},{_id:0,"departmentList.staffList.password":0})
 
@@ -1715,7 +2250,7 @@ exports.editDepartmentProgram = async (req,res,next) => {
   let result
 
   const editProgram = async (Document) => {
-    if (activity == 'center'){
+    if (activity == 'center' || activity == 'unit'){
       await Document.findOneAndUpdate(
         {"programs.programId":programId},
         {$set:{
@@ -1761,6 +2296,7 @@ exports.editDepartmentProgram = async (req,res,next) => {
     else if (activity == "college") result = await editProgram(College)
     else if (activity == "school") result = await editProgram(School)
     else if (activity == "center") result = await editProgram(Center)
+    else if (activity == "unit") result = await editProgram(Unit)
     else {
       res.json({success: false, message: "Wrong parameters"});
 
@@ -1780,7 +2316,7 @@ exports.editDepartmentStaffs = async (req,res,next) => {
   let result
 
   const staffEdit= async(Document) => {
-   if (activity == 'center'){
+   if (activity == 'center' || activity == 'unit'){
     await Document.findOneAndUpdate(
       {"staffList.staffId":staffId},
       {$set:{
@@ -1816,6 +2352,7 @@ exports.editDepartmentStaffs = async (req,res,next) => {
     else if (activity == "college") result = await staffEdit(College)
     else if (activity == "school") result = await staffEdit(School)
     else if (activity == "center") result = await staffEdit(Center)
+    else if (activity == "unit") result = await staffEdit(Unit)
     else {
       res.json({success: false, message: "Wrong parameters"});
 
@@ -1881,7 +2418,7 @@ exports.removeDepartmentProgram = async (req,res,next) => {
   const {departmentId,programId,activity,entityId} = req.query;
 
   const removeProgram = async (Document) => {
-    if (activity == 'center'){
+    if (activity == 'center' || activity == 'unit'){
       await Document.findOneAndUpdate(
         {"programs.programId":programId},
         {$pull:{"programs": {programId: programId}}},
@@ -1910,6 +2447,7 @@ exports.removeDepartmentProgram = async (req,res,next) => {
     else if (activity == "college") result = await removeProgram(College)
     else if (activity == "school") result = await removeProgram(School)
     else if (activity == "center") result = await removeProgram(Center)
+    else if (activity == "unit") result = await removeProgram(Unit)
     else {
       res.json({success: false, message: "Wrong parameters"});
 
@@ -1928,7 +2466,7 @@ exports.removeDepartmentStaff = async (req,res,next) => {
   let result
 
   const staffRemove = async (Document) => {
-    if (activity == 'center'){
+    if (activity == 'center' || activity == 'unit'){
       await Document.findOneAndUpdate(
         {[target]:entityId},
         {$pull:{"staffList": {staffId: staffId}}},
@@ -1956,6 +2494,7 @@ exports.removeDepartmentStaff = async (req,res,next) => {
     else if (activity == "college") result = await staffRemove(College)
     else if (activity == "school") result = await staffRemove(School)
     else if (activity == "center") result = await staffRemove(Center)
+    else if (activity == "unit") result = await staffRemove(Unit)
     else {
       res.json({success: false, message: "Wrong parameters"});
 

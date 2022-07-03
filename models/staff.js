@@ -6,10 +6,10 @@ const StaffSchema = new Schema({
     username: { type: String, required: true, unique: [ true, 'ID Number already exist' ] },
     firstName: { type: String, required: true},
     lastName: { type: String, required: true},
-    gender: { type: String},
+    gender: { type: String,default:null},
     phone: { type: String, required: true},
-    address: { type: String},
-    image: { type: String, default: 'null' },
+    address: { type: String,default:null},
+    image: { type: String, default: null },
 }, { timestamps: true });
 
 //plugin passport-local-mongoose to enable password hashing and salting and other things

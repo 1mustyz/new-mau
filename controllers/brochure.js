@@ -1,8 +1,4 @@
 const {singleFileUpload} = require('../middlewares/filesMiddleware');
-const Faculty = require('../models/faculty')
-const School = require('../models/school')
-const Center = require('../models/center')
-const College = require('../models/college');
 const multer = require('multer');
 const cloudinary = require('cloudinary');
 
