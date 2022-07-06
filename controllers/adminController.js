@@ -26,7 +26,8 @@ const bcrypt = require('bcrypt');
 const broc = require('./brochure')
 const { departmentDelete } = require('./deleteDepartment')
 const cloudinarySetup = require('../middlewares/cluadinarySetup');
-const { Result } = require('express-validator');
+const { serviceDelete } = require('./serviceDelete');
+const { serviceToolDelete } = require('./serviceToolDelete');
 
 
 // cloudinary configuration for saving files
@@ -518,7 +519,7 @@ exports.getStatistics = async (req,res,next) => {
 
 // Add event pic
 exports.addAnImageToEvent = async (req,res, next) => {
-  const {eventName,eventId,activity,facultyId,departmentId,target,subActivity,facilityId,serviceToolId} = req.query
+  const {eventName,eventId,activity,facultyId,departmentId,target,subActivity,facilityId,serviceToolId,serviceId} = req.query
   let allResults
   try {
     fs.rmSync('./public/images', { recursive: true });
@@ -825,9 +826,18 @@ exports.addAnImageToEvent = async (req,res, next) => {
           async function(error, result) {
             // console.log('444444',result, error); 
   
-              await Facility.findOneAndUpdate({"service.serviceTools.serviceToolId":serviceToolId},{$set: {"service.$.serviceTools.$.image": result.secure_url}},{new:true})
+            await Facility.findOneAndUpdate(
+              {"service.serviceTools.serviceToolId":serviceToolId},
+              {$set:{
+                "service.$[e1].serviceTools.$[e2].image":result.secure_url,
+              }},
+              { 
+                arrayFilters: [
+                  {"e1.serviceId": serviceId},
+                  { "e2.serviceToolId": serviceToolId}],
+              }
+              )
               let allResults = await Facility.find({"service.serviceTools.serviceToolId":serviceToolId},{_id:0})
-
             
             res.json({success: true,
               message: allResults,
@@ -1552,6 +1562,79 @@ exports.editFaculty = async (req,res,next) => {
   }
 }
 
+// delete or remove facility
+exports.removeFacility = async (req,res,next) => {
+  const {facilityId} = req.query     
+  const bigPromise = async () => {
+    const resultImage = await Facility.findOne({facilityId:facilityId})
+    console.log(resultImage.director)
+    //remove directors image
+    if(resultImage.director != null && resultImage.director != undefined ){
+      if(resultImage.director.image != null && resultImage.director.image != undefined ){
+
+        const ImageName = resultImage.director.image.split('/').splice(7)
+        console.log('-----------------',ImageName)
+  
+        cloudinary.v2.api.delete_resources_by_prefix(ImageName[0], 
+        {
+          invalidate: true,
+          resource_type: "raw"
+        }, 
+        function(error,result) {
+          console.log(result, error) 
+        }); 
+      }
+    }
+
+
+    // remove service tools image
+    if(resultImage.service != null && resultImage.service != undefined){
+  
+      if(resultImage.service.length !=0 ){
+        resultImage.service.map((srv)=>{
+          console.log(srv)
+    
+          if (srv.serviceTools != null && srv.serviceTools != undefined){
+  
+            if (srv.serviceTools.length != 0){
+                srv.serviceTools.map((tool) => {
+                console.log(tool)
+                if(tool.image != undefined && tool.image != null){
+                  const ImageName = tool.image.split('/').splice(7)
+                      console.log('-----------------',ImageName)
+              
+                      cloudinary.v2.api.delete_resources_by_prefix(ImageName[0], 
+                      {
+                        invalidate: true,
+                        resource_type: "raw"
+                    }, 
+                      function(error,result) {
+                        console.log(result, error) 
+                      }); 
+                }
+              })
+            }
+          }
+          
+        })
+  
+      }
+    }
+
+  }
+  const myPromise = new Promise(async (resolve, reject) => {
+    resolve(bigPromise())
+  });
+  myPromise.then(async ()=>{
+         
+    let result
+    
+    await Facility.findOneAndDelete({"facilityId":facilityId})
+    result = await Facility.find()
+    res.json({success: true, message: `Facility with the ID ${facilityId} has been removed`, result})
+})
+
+}
 
 // delete or remove faculty
 exports.removeFaculty = async (req,res,next) => {
@@ -1609,7 +1692,7 @@ exports.removeFaculty = async (req,res,next) => {
         }
         
       }else{
-        if(resultImage.departmentList != null && resultImage.departmentList != undefined)
+        if(resultImage.departmentList != null && resultImage.departmentList != undefined){
 
           if(resultImage.departmentList.length !=0 ){
             resultImage.departmentList.map((dpt)=>{
@@ -1671,8 +1754,10 @@ exports.removeFaculty = async (req,res,next) => {
               }
               
             })
-
+  
           }
+        }
+
 
       }
 
@@ -2465,6 +2550,19 @@ exports.removeDepartmentProgram = async (req,res,next) => {
   }
 }
 
+// delete serviceTool
+exports.removeServiceTool = async (req,res,next) => {
+  const {serviceId,serviceToolId} = req.query;
+
+  try {
+    await serviceToolDelete(serviceId,serviceToolId,req,res)
+    
+  } catch (error) {
+  console.log({success: false, error})
+    
+  }
+}
+
 // delete or remove staff
 exports.removeDepartmentStaff = async (req,res,next) => {
   const {departmentId,staffId,entityId,activity,target} = req.query;
@@ -2524,6 +2622,18 @@ exports.removeDepartment = async (req,res,next) => {
       res.json({success: false, message: "Wrong parameters"});
 
     } 
+  } catch (error) {
+  console.log({success: false, error})
+    
+  }
+}
+
+// delete service
+exports.removeService = async (req,res,next) => {
+  const {serviceId,facilityId} = req.query;
+  try {
+     await serviceDelete(Facility,serviceId,facilityId,req,res)
+    
   } catch (error) {
   console.log({success: false, error})
     

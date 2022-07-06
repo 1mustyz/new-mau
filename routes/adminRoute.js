@@ -137,6 +137,10 @@ router.put('/remove-dean', adminController.removeDean)
 // remove department program
 router.put('/remove-department-program', adminController.removeDepartmentProgram)
 
+// remove serviceTool
+router.put('/remove-service-serviceTool', adminController.removeServiceTool)
+
+
 // remove department staff
 router.put('/remove-department-staff', adminController.removeDepartmentStaff)
 
@@ -146,7 +150,13 @@ router.put('/remove-hod', adminController.removeHod)
 // remove department
 router.put('/remove-department', adminController.removeDepartment)
 
+// remove service
+router.put('/remove-service', adminController.removeService)
+
 // remove faculty
 router.delete('/remove-faculty', adminController.removeFaculty)
+
+// remove facility
+router.delete('/remove-facility', adminController.removeFacility)
 
 module.exports = router
