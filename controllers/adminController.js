@@ -791,15 +791,20 @@ exports.addAnImageToEvent = async (req,res, next) => {
   
           
         }else if(activity == "serviceTool"){
-          const result = await Facility.findOne({"service.serviceTools.serviceToolsId":'1dCqPdiV'},{_id: 0})
+          console.log(activity,serviceToolId)
+          const result = await Facility.findOne({"service.serviceTools.serviceToolId":serviceToolId},{_id: 0})
          
-          console.log(result)
-          resultFilter = result.service.filter((serviceTool)=>{
-            return serviceTool.serviceToolId == serviceToolId
+          // console.log(result.service)
+          let resultFilter
+          result.service.filter((service)=>{
+            // console.log(service.serviceTools)
+            service.serviceTools.filter((serviceTool) =>{
+              resultFilter = serviceTool.serviceToolId == serviceToolId ? serviceTool : ''
+            })
           })
-          console.log(resultFilter[0].image)
-          if(resultFilter[0].image != null){
-          // console.log('222222','hshsisi')
+          console.log(resultFilter)
+          if(resultFilter.image != null){
+          console.log('222222','hshsisi')
   
             
           const imageName = resultFilter[0].image.split('/').splice(7)
