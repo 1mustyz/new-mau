@@ -7,14 +7,15 @@ const School = require('../models/school')
 const Center = require('../models/center')
 const Unit = require('../models/unit')
 const Facility = require('../models/facility')
+const About = require('../models/about')
 const Downloadable = require('../models/downloadable')
+const PortalLink = require('../models/portalsLink')
 const multer = require('multer')
 const { singleUpload, singleFileUpload, singleAllMediaUpload } = require('../middlewares/filesMiddleware')
 const { uuid } = require('uuidv4');
 const jwt =require('jsonwebtoken');
 const csv = require('csv-parser')
 const fs = require('fs')
-const msToTime = require('../middlewares/timeMiddleware')
 const math = require('../middlewares/math.middleware')
 const randomstring = require("randomstring");
 const cloudinary = require('cloudinary');
@@ -28,6 +29,8 @@ const { departmentDelete } = require('./deleteDepartment')
 const cloudinarySetup = require('../middlewares/cluadinarySetup');
 const { serviceDelete } = require('./serviceDelete');
 const { serviceToolDelete } = require('./serviceToolDelete');
+const { paginatedResults } = require('./pagination');
+const portalLinks = require('../models/portalsLink');
 
 
 // cloudinary configuration for saving files
@@ -383,7 +386,102 @@ exports.addDownloadable = async(req,res,next) => {
 
 }
 
+// get paginated download
+exports.getAllDownloadsWithPagination = async (req, res, next) => {
+  const {page,limit} = req.query
+  try{
+    const allDownloads = await Downloadable.find({},{_id:0,createdAt:0,updatedAt:0,__v:0})
+    const result = paginatedResults(allDownloads,page,limit)
+    res.json({success: true, page,limit, result})
+  }catch(e){
 
+  }
+}
+
+// delete downloadable
+exports.deleteDownloadable = async (req,res,next) => {
+  const { downloadId } = req.query
+
+  try{
+    const download = await Downloadable.findOne({downloadId})
+    const downloadName = download.downloadLink.split('/').splice(7)
+    console.log('-----------------',downloadName)
+
+    cloudinary.v2.api.delete_resources_by_prefix(downloadName[0], 
+    {
+      invalidate: true,
+      resource_type: "raw"
+  }, 
+    function(error,result) {
+      console.log(result, error) 
+    });
+    await Downloadable.findOneAndDelete(downloadId)
+    const result = await Downloadable.find()
+    res.json({success:true,result})
+
+  }catch(e){
+    console.log(e)
+  }
+
+}
+
+// add portal links
+exports.addPortalLinks = async (req,res,next) => {
+  let { portals } = req.body
+  portals = portals.map(portal => {
+    portal.portalId = randomstring.generate(8)
+    return portal
+  })
+
+  try{
+    const result = await PortalLink.insertMany(portals,{new:true})
+    res.json({success: true, result})
+  }catch(e){
+    console.log(e)
+  }
+}
+
+// get paginated portals
+exports.getAllPortalsWithPagination = async (req, res, next) => {
+  const {page,limit} = req.query
+  try{
+    const allPortals = await PortalLink.find({},{_id:0,createdAt:0,updatedAt:0,__v:0})
+    const result = paginatedResults(allPortals,page,limit)
+    res.json({success: true, page,limit, result})
+  }catch(e){
+
+  }
+}
+
+// edit portals links
+exports.editPortalLink = async (req,res,next) => {
+  const { portal,portalId } = req.body
+
+  try{
+
+    await PortalLink.findOneAndUpdate({portalId:portalId},portal)
+    const result = await PortalLink.find()
+    res.json({success:true, result})
+  }catch(e){
+    console.log(e)
+  }
+}
+
+
+// delete portal links
+exports.deletePortalLink = async (req,res,next) => {
+  const { portalId } = req.query
+
+  try{
+    await PortalLink.findOneAndDelete(portalId)
+    const result = await PortalLink.find()
+    res.json({success:true,result})
+
+  }catch(e){
+    console.log(e)
+  }
+
+}
 
 exports.getHomeEvent = async (req,res, next) => {
   try {
@@ -462,23 +560,23 @@ exports.getStatistics = async (req,res,next) => {
 
     const result = await [
       {
-        name:'faculty',
+        name:'faculties',
         count:faculty.length > 0 ? faculty[0]['NumberOfCount'] : 0
       },
       {
-        name:'college',
+        name:'colleges',
         count:college.length > 0 ? college[0]['NumberOfCount'] : 0
       },
       {
-        name:'school',
+        name:'schools',
         count:school.length > 0 ? school[0]['NumberOfCount'] : 0
       },
       {
-        name:'center',
+        name:'centers',
         count:center.length > 0 ? center[0]['NumberOfCount'] : 0
       },
       {
-        name:'unit',
+        name:'units',
         count:unit.length > 0 ? unit[0]['NumberOfCount'] : 0
       }]
     const departmentList = await {
@@ -510,7 +608,7 @@ exports.getStatistics = async (req,res,next) => {
       program: centerProgramList.length > 0 ? centerProgramList[0]['NumberOfCount'] : centerProgramList = 0
     }
 
-    res.json({success:true, result:[...result,{name:'program', count: programList['NumberOfCount']}]})
+    res.json({success:true, result:[...result,{name:'programmes', count: programList['NumberOfCount']}]})
     
   } catch (error) {
     console.log(error)
@@ -1007,9 +1105,23 @@ exports.editEvent = async (req,res,next) => {
   const {eventId,evnt,eventName} = req.body;
   if(eventName == "mainEvents"){
 
-    allEvents = await HomePage.findOneAndUpdate({"mainEvents.evntId": eventId},{$set: {"mainEvents.$.header": evnt.header, "mainEvents.$.description": evnt.description, "mainEvents.$.subHeader": evnt.subHeader}},{new:true})
+    allEvents = await HomePage.findOneAndUpdate({"mainEvents.evntId": eventId},{$set: {
+      "mainEvents.$.header": evnt.header, 
+      "mainEvents.$.description": evnt.description, 
+      "mainEvents.$.subHeader": evnt.subHeader, 
+      "mainEvents.$.dayOfEvent": evnt.dayOfEvent,
+      "mainEvents.$.links": evnt.links,
+
+    }},{new:true})
+
   }else if(eventName == "newsEvents"){
-    allEvents = await HomePage.findOneAndUpdate({"newsEvents.evntId": eventId},{$set: {"newsEvents.$.header": evnt.header, "newsEvents.$.description": evnt.description, "newsEvents.$.subHeader": evnt.subHeader}},{new:true})
+    allEvents = await HomePage.findOneAndUpdate({"newsEvents.evntId": eventId},{$set: {
+      "newsEvents.$.header": evnt.header,
+      "newsEvents.$.description": evnt.description,
+      "newsEvents.$.subHeader": evnt.subHeader,
+      "newsEvents.$.dayOfEvent": evnt.dayOfEvent,
+      "newsEvents.$.links": evnt.links,
+    }},{new:true})
   }else if (eventNamee == "programs"){
     allEvents = await HomePage.findOneAndUpdate({"programs.evntId": eventId},{$set: {"programs.$.header": evnt.header, "programs.$.description": evnt.description,"programs.$.subHeader": evnt.subHeader}},{new:true})
 
@@ -1024,6 +1136,40 @@ exports.editEvent = async (req,res,next) => {
     })
 
   res.json({success: true, allEvents,editedEvent:resultFilter})
+}
+
+exports.getSingleMainEvents = async (req,res,next) => {
+  const {eventId} = req.query
+
+  try{
+    const singleMainEvent = await HomePage.aggregate([
+      {$match:{"mainEvents.evntId": eventId}},
+      {$project: {mainEvents:1,_id:0}},
+      {$unwind: "$mainEvents"},
+      {$match:{"mainEvents.evntId": eventId}},
+    ])
+    res.json({success:true, result: singleMainEvent[0].mainEvents})
+  }catch(e){
+    console.log(e)
+  }
+  
+}
+
+exports.getSingleNewsEvents = async (req,res,next) => {
+  const {eventId} = req.query
+
+  try{
+    const singleNewsEvent = await HomePage.aggregate([
+      {$match:{"newsEvents.evntId": eventId}},
+      {$project: {newsEvents:1,_id:0}},
+      {$unwind: "$newsEvents"},
+      {$match:{"newsEvents.evntId": eventId}},
+    ])
+    res.json({success:true, result: singleNewsEvent[0].newsEvents})
+  }catch(e){
+    console.log(e)
+  }
+  
 }
 
 
@@ -1503,6 +1649,101 @@ exports.getSingleProgram = async (req,res, next) => {
    res.json({success: true, message: result,})
 }  
 
+
+exports.allPrograms = async (req, res, next) => {
+
+  const findPrograms = async (Document,target,activity) => {
+
+    if (target == 'center' || target == 'unit'){
+      return await Document.aggregate([
+        {$match:{}},
+        {$project: {programs:1, _id:0}},
+        {$unwind: {path:"$programs"}},
+        {$project: {programs:{programId:"$programs.programId", name:"$programs.name", type:"$programs.type",activity:`${target}`}}},
+        // {$project: {programs:"$departmentList.programs"}},
+        // {$unwind: {path:"$programs"}},
+    
+      ])
+    }
+
+    return await Document.aggregate([
+      {$match:{}},
+      {$project: {departmentList:1, _id:0}},
+      {$unwind: {path:"$departmentList"}},
+      {$project: {programs:"$departmentList.programs"}},
+      {$unwind: {path:"$programs"}},
+      {$project: {programs:{programId:"$programs.programId", name:"$programs.name", type:"$programs.type",activity:`${target}`}}},
+  
+    ])
+
+  } 
+
+  let undergraduate = []
+  let postgraduate = []
+  const facultyPrograms = await findPrograms(Faculty,"faculty")
+  const schoolsPrograms = await findPrograms(School,"school")
+  const collegePrograms = await findPrograms(College,"college")
+  const centerPrograms = await findPrograms(Center,"center")
+  const unitPrograms = await findPrograms(Unit,"unit")
+
+  // console.log(centerPrograms)
+
+  const filterPrograms = () => {
+    facultyPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }
+    })
+  
+    schoolsPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }
+    })
+  
+    collegePrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }
+    })
+  
+    centerPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }
+    })
+  
+    unitPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }
+    })
+  }
+
+  const promise = new Promise((resolve,reject)=>{
+    resolve(filterPrograms())
+  })
+  promise.then(()=>{
+    res.json({success:true, undergraduate,postgraduate})
+
+  })
+
+}
 
 // get all department
 exports.getAllDepartment = async (req,res, next) => {
@@ -2637,6 +2878,26 @@ exports.removeService = async (req,res,next) => {
   } catch (error) {
   console.log({success: false, error})
     
+  }
+}
+
+// About us start here
+exports.createAboutChancelor = async (req,res,next) => {
+  const data = {
+    aboutId: randomstring.generate(8),
+    content: [{
+      name: req.body.name,
+      rank: req.body.rank,
+      position: req.body.position
+    }],
+    type: req.body.type
+  }
+
+  try {
+    await About.insertOne(data)
+    const result = await About.find()
+  } catch (error) {
+    console.log(error)
   }
 }
 

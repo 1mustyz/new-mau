@@ -22,6 +22,9 @@ router.post('/add-faculty-from-file', adminController.createFacultyFromAfile)
 // add downloadables
 router.post('/add-downloadbles', adminController.addDownloadable)
 
+// add portals
+router.post('/add-portals-links', adminController.addPortalLinks)
+
 // create main event
 router.put('/create-home-event', adminController.addHomeEvent)
 
@@ -65,6 +68,12 @@ router.get('/get-single-staff', adminController.singleStaff)
 // get home event
 router.get('/get-home-event', adminController.getHomeEvent)
 
+// get single mainEvents
+router.get('/get-single-main-event', adminController.getSingleMainEvents)
+
+// get single newsEvents
+router.get('/get-single-news-event', adminController.getSingleNewsEvents)
+
 // get all faculties
 router.get('/get-all-faculties-schools-college', adminController.getAllFacultiesSchoolsCollege)
 
@@ -77,11 +86,20 @@ router.get('/get-single-department', adminController.getSingleDepartment)
 // get single program
 router.get('/get-single-program', adminController.getSingleProgram)
 
+// get all program
+router.get('/get-all-programs', adminController.allPrograms)
+
 // get all department
 router.get('/get-all-department', adminController.getAllDepartment)
 
 // get all statistics
 router.get('/get-statistics', adminController.getStatistics)
+
+// all portals
+router.get('/get-all-portals-with-pagination', adminController.getAllPortalsWithPagination)
+
+// all paginated download
+router.get('/get-all-download-with-pagination', adminController.getAllDownloadsWithPagination)
 
 // remove event
 router.put('/remove-event', adminController.removeEvent)
@@ -103,6 +121,9 @@ router.put('/edit-department-program', adminController.editDepartmentProgram)
 
 // edit department staff
 router.put('/edit-department-staff', adminController.editDepartmentStaffs)
+
+// edit portal link
+router.put('/edit-portal-link', adminController.editPortalLink)
 
 // add dean
 router.put('/add-dean', adminController.addDean)
@@ -158,5 +179,11 @@ router.delete('/remove-faculty', adminController.removeFaculty)
 
 // remove facility
 router.delete('/remove-facility', adminController.removeFacility)
+
+// remove portal links
+router.delete('/delete-a-portal-link', adminController.deletePortalLink)
+
+// remove downloadable
+router.delete('/delete-a-downloadable', adminController.deleteDownloadable)
 
 module.exports = router
