@@ -31,11 +31,20 @@ router.put('/create-home-event', adminController.addHomeEvent)
 // add image to an event
 router.put('/upload-an-image', adminController.addAnImageToEvent)
 
+// add image about leadership
+router.put('/upload-about-leadership-image', adminController.addAboutImages)
+
+// add about
+router.put('/add-about-leadership', adminController.createAbout)
+
 // set profie pic
 router.put('/set-profile-pic', adminController.setProfilePic)
 
 // edit home page event
 router.put('/edit-homepage-event', adminController.editEvent)
+
+// edit about page
+router.put('/edit-about-leadership', adminController.editAbout)
 
 // add facility service
 router.put('/add-facility-service', adminController.addFacilityService)
@@ -67,6 +76,10 @@ router.get('/get-single-staff', adminController.singleStaff)
 
 // get home event
 router.get('/get-home-event', adminController.getHomeEvent)
+
+// get home event
+router.get('/get-about-leadership', adminController.getAboutLeadership)
+
 
 // get single mainEvents
 router.get('/get-single-main-event', adminController.getSingleMainEvents)
@@ -103,6 +116,9 @@ router.get('/get-all-download-with-pagination', adminController.getAllDownloadsW
 
 // remove event
 router.put('/remove-event', adminController.removeEvent)
+
+// remove about
+router.put('/remove-about-leadership', adminController.removeAboutLeadershipContent)
 
 // edit faculty
 router.put('/edit-faculty', adminController.editFaculty)
