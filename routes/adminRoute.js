@@ -80,6 +80,8 @@ router.get('/get-home-event', adminController.getHomeEvent)
 // get home event
 router.get('/get-about-leadership', adminController.getAboutLeadership)
 
+// get single principal officer
+router.get('/get-single-principal-officer', adminController.getSinglePrincipalOfficer)
 
 // get single mainEvents
 router.get('/get-single-main-event', adminController.getSingleMainEvents)

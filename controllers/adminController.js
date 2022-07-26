@@ -3116,3 +3116,22 @@ exports.getAboutLeadership = async (req,res,next) => {
     console.log(e)
   }
 }
+
+exports.getSinglePrincipalOfficer = async (req,res,next) =>{
+  const { principalId } = req.query
+
+  try {
+    const result = await About.aggregate([
+      {$match: {}},
+      {$project: {principalOfficer: 1, _id:0}},
+      {$unwind: "$principalOfficer"},
+      {$match: {"principalOfficer.evntId": principalId}},
+
+    ])
+
+    res.json({success: true, result:result[0]})
+
+  } catch (error) {
+    console.log(error)
+  }
+}
