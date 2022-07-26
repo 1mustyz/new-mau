@@ -89,6 +89,9 @@ router.get('/get-single-principal-officer', adminController.getSinglePrincipalOf
 // get single mainEvents
 router.get('/get-single-main-event', adminController.getSingleMainEvents)
 
+// get single programs
+router.get('/get-single-program-event', adminController.getSingleProgramsEvents)
+
 // get single newsEvents
 router.get('/get-single-news-event', adminController.getSingleNewsEvents)
 

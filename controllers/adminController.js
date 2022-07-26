@@ -208,15 +208,7 @@ exports.findAllStaff = async (req,res, next) => {
 // get all academy staff
 exports.getDepartmentAcademyStaff = async (req,res,next) => {
   const {targetId, activity, } = req.query
-  let document
-  if(activity == "faculty") document == Faculty
-  else if (activity == "school") document == School
-  else if (activity == "college") document == College
-  else if (activity == "center") document == Center
-  else if (activity == "unit") document == Unit
-  else {
-    res.json({success:false, message: 'Wrong parameters'})
-  }
+ 
 
 
   const getStaff = async (Document,activity) => {
@@ -253,7 +245,15 @@ exports.getDepartmentAcademyStaff = async (req,res,next) => {
   }
 
   try {
-    getStaff(document,activity)
+   
+    if(activity == "faculty")  getStaff(document,activity)
+    else if (activity == "school") document == School
+    else if (activity == "college") document == College
+    else if (activity == "center") document == Center
+    else if (activity == "unit") document == Unit
+    else {
+      res.json({success:false, message: 'Wrong parameters'})
+    }
   } catch (error) {
     console.log(error)
   }
@@ -1203,6 +1203,23 @@ exports.getSingleMainEvents = async (req,res,next) => {
       {$match:{"mainEvents.evntId": eventId}},
     ])
     res.json({success:true, result: singleMainEvent[0].mainEvents})
+  }catch(e){
+    console.log(e)
+  }
+  
+}
+
+exports.getSingleProgramsEvents = async (req,res,next) => {
+  const {eventId} = req.query
+
+  try{
+    const singleProgramsEvent = await HomePage.aggregate([
+      {$match:{"programs.evntId": eventId}},
+      {$project: {programs:1,_id:0}},
+      {$unwind: "$programs"},
+      {$match:{"programs.evntId": eventId}},
+    ])
+    res.json({success:true, result: singleProgramsEvent[0].programs})
   }catch(e){
     console.log(e)
   }
