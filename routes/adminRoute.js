@@ -65,6 +65,9 @@ router.post('/login', adminController.loginStaff)
 router.get('/get-all-staff', adminController.findAllStaff)
 router.post('/mail', adminController.mall)
 
+// get all academy staff
+router.get('/get-department-academy-staff', adminController.getDepartmentAcademyStaff)
+
 // get all facilties
 router.get('/get-all-facilities', adminController.getAllFacilities)
 

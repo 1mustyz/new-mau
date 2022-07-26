@@ -18,7 +18,14 @@ require('dotenv').config()
 const adminRouter = require('./routes/adminRoute')
 
 var app = express();
-app.use(cors())
+const corsOptions ={
+  origin:'*', 
+  credentials:true,            //access-control-allow-credentials:true
+  optionSuccessStatus:200,
+  allowAllOrigin: true
+}
+
+app.use(cors(corsOptions))
 
 // setting up session
 app.use(expressSession({

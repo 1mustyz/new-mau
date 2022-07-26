@@ -205,6 +205,60 @@ exports.findAllStaff = async (req,res, next) => {
    : res.json({success: false, message: result,})
 }
 
+// get all academy staff
+exports.getDepartmentAcademyStaff = async (req,res,next) => {
+  const {targetId, activity, } = req.query
+  let document
+  if(activity == "faculty") document == Faculty
+  else if (activity == "school") document == School
+  else if (activity == "college") document == College
+  else if (activity == "center") document == Center
+  else if (activity == "unit") document == Unit
+  else {
+    res.json({success:false, message: 'Wrong parameters'})
+  }
+
+
+  const getStaff = async (Document,activity) => {
+    let result
+    try {
+      if(activity == "center" ){
+        result = await Document.aggregate([
+          {$match:{"centerId":targetId}},
+          {$project: {staffList:1, _id:0}},
+    
+        ])
+      }else if(activity == "unit"){
+        result = await Document.aggregate([
+          {$match:{"unitId":targetId}},
+          {$project: {staffList:1, _id:0}},
+    
+        ])
+      }else{
+
+        result = await Document.aggregate([
+          {$match:{"departmentList.departmentId":targetId}},
+          {$project: {departmentList:1, _id:0}},
+          {$unwind: "$departmentList"},
+          {$match:{"departmentList.departmentId":targetId}},
+          {$project: {staffList:"$departmentList.staffList"}},
+    
+        ])
+      }
+  
+      res.json(result)
+    } catch (error) {
+      console.log(error)
+    }
+  }
+
+  try {
+    getStaff(document,activity)
+  } catch (error) {
+    console.log(error)
+  }
+} 
+
 
 // find single staff
 exports.singleStaff = async (req,res, next) => {
