@@ -208,8 +208,6 @@ exports.findAllStaff = async (req,res, next) => {
 // get all academy staff
 exports.getDepartmentAcademyStaff = async (req,res,next) => {
   const {targetId, activity, } = req.query
- 
-
 
   const getStaff = async (Document,activity) => {
     let result
@@ -246,11 +244,11 @@ exports.getDepartmentAcademyStaff = async (req,res,next) => {
 
   try {
    
-    if(activity == "faculty")  getStaff(document,activity)
-    else if (activity == "school") document == School
-    else if (activity == "college") document == College
-    else if (activity == "center") document == Center
-    else if (activity == "unit") document == Unit
+    if(activity == "faculty")  getStaff(Faculty,activity)
+    else if (activity == "school") getStaff(School,activity)
+    else if (activity == "college") getStaff(College,activity)
+    else if (activity == "center") getStaff(Center,activity)
+    else if (activity == "unit") getStaff(Unit,activity)
     else {
       res.json({success:false, message: 'Wrong parameters'})
     }
@@ -1751,6 +1749,12 @@ exports.allPrograms = async (req, res, next) => {
 
   let undergraduate = []
   let postgraduate = []
+  let diploma = []
+  let distanceLearningUnderGraduate = []
+  let distanceLearningPostGraduate = []
+  let sandwichUnderGraduate = []
+  let preDegreeIjmb = []
+
   const facultyPrograms = await findPrograms(Faculty,"faculty")
   const schoolsPrograms = await findPrograms(School,"school")
   const collegePrograms = await findPrograms(College,"college")
@@ -1766,6 +1770,16 @@ exports.allPrograms = async (req, res, next) => {
         undergraduate.push(prg.programs)
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        postgraduate.push(prg.programs)
       }
     })
   
@@ -1774,6 +1788,16 @@ exports.allPrograms = async (req, res, next) => {
       if (prg.programs.type == "undergraduate"){
         undergraduate.push(prg.programs)
       }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
         postgraduate.push(prg.programs)
       }
     })
@@ -1784,6 +1808,16 @@ exports.allPrograms = async (req, res, next) => {
         undergraduate.push(prg.programs)
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        postgraduate.push(prg.programs)
       }
     })
   
@@ -1793,6 +1827,16 @@ exports.allPrograms = async (req, res, next) => {
         undergraduate.push(prg.programs)
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        postgraduate.push(prg.programs)
       }
     })
   
@@ -1801,6 +1845,16 @@ exports.allPrograms = async (req, res, next) => {
       if (prg.programs.type == "undergraduate"){
         undergraduate.push(prg.programs)
       }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
         postgraduate.push(prg.programs)
       }
     })
