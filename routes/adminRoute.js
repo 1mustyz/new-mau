@@ -2,6 +2,8 @@ const express = require('express')
 const router = express.Router()
 const adminController = require('../controllers/adminController')
 const facilityController = require('../controllers/facilityController')
+const campusLifeController = require('../controllers/campusLifeController')
+
 // const passport = require('passport')
 const idChecker = require('../middlewares/idChecker')
 
@@ -29,8 +31,14 @@ router.post('/add-portals-links', adminController.addPortalLinks)
 // create main event
 router.put('/create-home-event', adminController.addHomeEvent)
 
+// create main event
+router.put('/create-campus-life', campusLifeController.addCampusLife)
+
 // add image to an event
 router.put('/upload-an-image', adminController.addAnImageToEvent)
+
+// add campus life image
+router.put('/upload-campus-life-image', campusLifeController.addCampusLifeImage)
 
 // add image about leadership
 router.put('/upload-about-leadership-image', adminController.addAboutImages)
@@ -43,6 +51,9 @@ router.put('/set-profile-pic', adminController.setProfilePic)
 
 // edit home page event
 router.put('/edit-homepage-event', adminController.editEvent)
+
+// edit campus life
+router.put('/edit-campus-life', campusLifeController.editCampusLife)
 
 // edit about page
 router.put('/edit-about-leadership', adminController.editAbout)
@@ -82,6 +93,10 @@ router.get('/get-single-staff', adminController.singleStaff)
 
 // get home event
 router.get('/get-home-event', adminController.getHomeEvent)
+
+// get campus life
+router.get('/get-campus-life', campusLifeController.getCampusLife)
+
 
 // get home event
 router.get('/get-about-leadership', adminController.getAboutLeadership)
@@ -127,6 +142,9 @@ router.get('/get-all-download-with-pagination', adminController.getAllDownloadsW
 
 // remove event
 router.put('/remove-event', adminController.removeEvent)
+
+// remove campus life event
+router.put('/remove-campus-life-event', campusLifeController.removeCampusLifeEvent)
 
 // remove about
 router.put('/remove-about-leadership', adminController.removeAboutLeadershipContent)
