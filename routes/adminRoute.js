@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const adminController = require('../controllers/adminController')
+const facilityController = require('../controllers/facilityController')
 // const passport = require('passport')
 const idChecker = require('../middlewares/idChecker')
 
@@ -14,7 +15,7 @@ router.post('/register-staff', adminController.registerStaff)
 router.post('/add-faculty', adminController.addFaculty)
 
 // create facilty
-router.post('/add-facilty', adminController.addFacilities)
+router.post('/add-facilty', facilityController.addFacilities)
 
 // create faculty
 router.post('/add-faculty-from-file', adminController.createFacultyFromAfile)
@@ -47,14 +48,16 @@ router.put('/edit-homepage-event', adminController.editEvent)
 router.put('/edit-about-leadership', adminController.editAbout)
 
 // add facility service
-router.put('/add-facility-service', adminController.addFacilityService)
+router.put('/add-facility-service', facilityController.addFacilityService)
 
 // add facility service description
-router.put('/add-facility-service-description', adminController.addFacilityServiceDescription)
+router.put('/add-facility-service-description', facilityController.addMoreFacilityServiceDescription)
 
 // add facility service tools
-router.put('/add-facility-service-tools', adminController.addFacilityServiceTools)
+router.put('/add-facility-service-tools', facilityController.addFacilityServiceTools)
 
+// add facility service tools image
+router.put('/add-facility-service-tools-image', facilityController.addFacilityServiceToolImage)
 
 // login staff
 router.post('/login', adminController.loginStaff)
@@ -69,10 +72,10 @@ router.post('/mail', adminController.mall)
 router.get('/get-department-academy-staff', adminController.getDepartmentAcademyStaff)
 
 // get all facilties
-router.get('/get-all-facilities', adminController.getAllFacilities)
+router.get('/get-all-facilities', facilityController.getAllFacilities)
 
 // get single facilties
-router.get('/get-single-facility', adminController.getSingleFacility)
+router.get('/get-single-facility', facilityController.getSingleFacility)
 
 // get single staff
 router.get('/get-single-staff', adminController.singleStaff)
@@ -131,6 +134,12 @@ router.put('/remove-about-leadership', adminController.removeAboutLeadershipCont
 // edit faculty
 router.put('/edit-faculty', adminController.editFaculty)
 
+// edit facility
+router.put('/edit-facility', facilityController.editFacility)
+
+// edit facility service
+router.put('/edit-facility-service', facilityController.editFacilityService)
+
 // edit dean
 router.put('/edit-dean', adminController.editDean)
 
@@ -153,7 +162,7 @@ router.put('/edit-portal-link', adminController.editPortalLink)
 router.put('/add-dean', adminController.addDean)
 
 //add facility director
-router.put('/add-facility-director', adminController.addFaciltyDirector)
+router.put('/add-facility-director', facilityController.addFaciltyDirector)
 
 // add department
 router.put('/add-department', adminController.addDepartment)
@@ -183,7 +192,7 @@ router.put('/remove-dean', adminController.removeDean)
 router.put('/remove-department-program', adminController.removeDepartmentProgram)
 
 // remove serviceTool
-router.put('/remove-service-serviceTool', adminController.removeServiceTool)
+router.put('/remove-service-serviceTool', facilityController.removeServiceTool)
 
 
 // remove department staff
@@ -196,13 +205,13 @@ router.put('/remove-hod', adminController.removeHod)
 router.put('/remove-department', adminController.removeDepartment)
 
 // remove service
-router.put('/remove-service', adminController.removeService)
+router.put('/remove-service', facilityController.removeService)
 
 // remove faculty
 router.delete('/remove-faculty', adminController.removeFaculty)
 
 // remove facility
-router.delete('/remove-facility', adminController.removeFacility)
+router.delete('/remove-facility', facilityController.removeFacility)
 
 // remove portal links
 router.delete('/delete-a-portal-link', adminController.deletePortalLink)

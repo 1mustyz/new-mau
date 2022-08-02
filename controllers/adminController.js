@@ -27,8 +27,7 @@ const bcrypt = require('bcrypt');
 const broc = require('./brochure')
 const { departmentDelete } = require('./deleteDepartment')
 const cloudinarySetup = require('../middlewares/cluadinarySetup');
-const { serviceDelete } = require('./serviceDelete');
-const { serviceToolDelete } = require('./serviceToolDelete');
+
 const { paginatedResults } = require('./pagination');
 const portalLinks = require('../models/portalsLink');
 
@@ -669,7 +668,7 @@ exports.getStatistics = async (req,res,next) => {
 
 // Add event pic
 exports.addAnImageToEvent = async (req,res, next) => {
-  const {eventName,eventId,activity,facultyId,departmentId,target,subActivity,facilityId,serviceToolId,serviceId} = req.query
+  const {eventName,eventId,activity,facultyId,departmentId,target,subActivity,facilityId} = req.query
   let allResults
   try {
     fs.rmSync('./public/images', { recursive: true });
@@ -880,7 +879,7 @@ exports.addAnImageToEvent = async (req,res, next) => {
   
               await Document.findOneAndUpdate({[target]:facultyId},{$set: {"dean.image": result.secure_url}},{new:true})
               let allResults 
-              if(subActivity == 'center'){
+              if(subActivity == 'center' || subActivity == 'unit'){
                 allResults = await Document.find({[target]:facultyId},{programs:0,staffList:0})
               }else{
                 allResults = await Document.find({[target]:facultyId},{departmentList:0})
@@ -900,6 +899,8 @@ exports.addAnImageToEvent = async (req,res, next) => {
           else if (subActivity === "college") await  deanImage(College);
           else if (subActivity === "school") await deanImage(School);
           else if (subActivity === "center") await deanImage(Center);
+          else if (subActivity === "unit") await deanImage(Unit);
+
           else {
             res.json({success: false, message: 'Wrong parameters'})
           }
@@ -932,62 +933,6 @@ exports.addAnImageToEvent = async (req,res, next) => {
               await Facility.findOneAndUpdate({facilityId},{$set: {"director.image": result.secure_url}},{new:true})
               let allResults = await Facility.find({facilityId},{_id:0})
 
-            
-            res.json({success: true,
-              message: allResults,
-                        },
-            
-            );
-          });
-  
-          
-        }else if(activity == "serviceTool"){
-          console.log(activity,serviceToolId)
-          const result = await Facility.findOne({"service.serviceTools.serviceToolId":serviceToolId},{_id: 0})
-         
-          // console.log(result.service)
-          let resultFilter
-          result.service.filter((service)=>{
-            // console.log(service.serviceTools)
-            service.serviceTools.filter((serviceTool) =>{
-              resultFilter = serviceTool.serviceToolId == serviceToolId ? serviceTool : ''
-            })
-          })
-          console.log(resultFilter)
-          if(resultFilter.image != null){
-          console.log('222222','hshsisi')
-  
-            
-          const imageName = resultFilter[0].image.split('/').splice(7)
-          console.log('-----------------',imageName)
-  
-            cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-            {
-              invalidate: true,
-                resource_type: "raw"
-            }, 
-              function(error,result) {
-                // console.log('33333333',result, error)
-              });  
-          }
-  
-          cloudinary.v2.uploader.upload(req.file.path, 
-          { resource_type: "raw" }, 
-          async function(error, result) {
-            // console.log('444444',result, error); 
-  
-            await Facility.findOneAndUpdate(
-              {"service.serviceTools.serviceToolId":serviceToolId},
-              {$set:{
-                "service.$[e1].serviceTools.$[e2].image":result.secure_url,
-              }},
-              { 
-                arrayFilters: [
-                  {"e1.serviceId": serviceId},
-                  { "e2.serviceToolId": serviceToolId}],
-              }
-              )
-              let allResults = await Facility.find({"service.serviceTools.serviceToolId":serviceToolId},{_id:0})
             
             res.json({success: true,
               message: allResults,
@@ -1455,91 +1400,6 @@ const getAllFacultiesOrSchoolOrCollege = async (Document, entityName, entityId )
 
 }
 
-// add facilities
-exports.addFacilities = async (req,res,next) => {
-  req.body.facilityId = randomstring.generate(8)
-
-  try {
-    await Facility.collection.insertOne(req.body,{new:true})
-    const result = await Facility.find()
-    res.json({success: true, result})
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-// add facility services
-exports.addFacilityService = async (req,res,next) => {
-  const { service, facilityId } = req.body
-  service.serviceId = randomstring.generate(8)
-
-  console.log(service)
-
-  try {
-    await Facility.findOneAndUpdate({facilityId},{$push:{"service":service}})
-    const result = await Facility.find()
-
-    res.json({sucess:true, result})
-
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-// add facility description
-exports.addFacilityServiceDescription = async (req,res,next) => {
-  const {serviceId, description} = req.body
-  description.descriptionId = randomstring.generate(8)
-  console.log(description)
-
-  try {
-    await Facility.findOneAndUpdate({'service.serviceId':serviceId},{$push:{'service.$.description':description}})
-    const result = await Facility.find({'service.serviceId':serviceId})
-    res.json({success:true,result})
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-// add facility serviceTools
-exports.addFacilityServiceTools = async (req,res,next) => {
-  const {serviceId, serviceTool} = req.body
-  serviceTool.serviceToolId = randomstring.generate(8)
-  serviceTool.image = null
-  console.log(serviceTool)
-
-  try {
-    await Facility.findOneAndUpdate({'service.serviceId':serviceId},{$push:{'service.$.serviceTools':serviceTool}})
-    const result = await Facility.find({'service.serviceId':serviceId})
-    res.json({success:true,result})
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-
-// get all facilities
-exports.getAllFacilities = async (req,res,next) => {
-  console.log('hello')
-
-  try {
-    const result = await Facility.find()
-    res.json({success: true, result})
-  } catch (error) {
-    console.log(error)
-  }
-}
-
-exports.getSingleFacility = async (req,res,next) => {
-  const { facilityId } = req.query
-
-  try {
-    const result = await Facility.findOne({facilityId})
-    res.json({success:true,result})
-  } catch (error) {
-    console.log(error)
-  }
-}
 
 // getall faculties
 exports.getAllFacultiesSchoolsCollege = async (req,res, next) => {
@@ -1873,23 +1733,19 @@ exports.allPrograms = async (req, res, next) => {
 // get all department
 exports.getAllDepartment = async (req,res, next) => {
 
-  const allDepartment = async(Document) => {
+  const allDepartment = async(Document,id,name) => {
 
-    let result = await Document.find({},{"departmentList.staffList.password":0, _id:0});
-  
-    let resulty = []
-    result.map((dpt)=>{
-      dpt.departmentList.map((innerDpt)=>{
-  
-      resulty.push(innerDpt) 
-      })
-    })
-    return resulty
+  return result = await Document.aggregate([
+    {$match:{}},
+    {$project : {_id:0, [id]:1, [name]:1, department:"$departmentList"}},
+    {$unwind: "$department"}
+  ]);
+    
   }
   try {
-    const facultyDepartment = await allDepartment(Faculty);
-    const collegeDepartment = await allDepartment(College);
-    const schoolDepartment = await allDepartment(School);
+    const facultyDepartment = await allDepartment(Faculty,'facultyId','facultyName');
+    const collegeDepartment = await allDepartment(College, 'collegeId','collegeName');
+    const schoolDepartment = await allDepartment(School, 'schoolId', 'schoolName');
 
     res.json({success: true, message: [...facultyDepartment, ...collegeDepartment, ...schoolDepartment]})
   } catch (error) {
@@ -1928,79 +1784,6 @@ exports.editFaculty = async (req,res,next) => {
   }
 }
 
-// delete or remove facility
-exports.removeFacility = async (req,res,next) => {
-  const {facilityId} = req.query     
-  const bigPromise = async () => {
-    const resultImage = await Facility.findOne({facilityId:facilityId})
-    console.log(resultImage.director)
-    //remove directors image
-    if(resultImage.director != null && resultImage.director != undefined ){
-      if(resultImage.director.image != null && resultImage.director.image != undefined ){
-
-        const ImageName = resultImage.director.image.split('/').splice(7)
-        console.log('-----------------',ImageName)
-  
-        cloudinary.v2.api.delete_resources_by_prefix(ImageName[0], 
-        {
-          invalidate: true,
-          resource_type: "raw"
-        }, 
-        function(error,result) {
-          console.log(result, error) 
-        }); 
-      }
-    }
-
-
-    // remove service tools image
-    if(resultImage.service != null && resultImage.service != undefined){
-  
-      if(resultImage.service.length !=0 ){
-        resultImage.service.map((srv)=>{
-          console.log(srv)
-    
-          if (srv.serviceTools != null && srv.serviceTools != undefined){
-  
-            if (srv.serviceTools.length != 0){
-                srv.serviceTools.map((tool) => {
-                console.log(tool)
-                if(tool.image != undefined && tool.image != null){
-                  const ImageName = tool.image.split('/').splice(7)
-                      console.log('-----------------',ImageName)
-              
-                      cloudinary.v2.api.delete_resources_by_prefix(ImageName[0], 
-                      {
-                        invalidate: true,
-                        resource_type: "raw"
-                    }, 
-                      function(error,result) {
-                        console.log(result, error) 
-                      }); 
-                }
-              })
-            }
-          }
-          
-        })
-  
-      }
-    }
-
-  }
-  const myPromise = new Promise(async (resolve, reject) => {
-    resolve(bigPromise())
-  });
-  myPromise.then(async ()=>{
-         
-    let result
-    
-    await Facility.findOneAndDelete({"facilityId":facilityId})
-    result = await Facility.find()
-    res.json({success: true, message: `Facility with the ID ${facilityId} has been removed`, result})
-})
-
-}
 
 // delete or remove faculty
 exports.removeFaculty = async (req,res,next) => {
@@ -2235,22 +2018,7 @@ exports.addDean = async (req,res,next) => {
   res.json({success: true, message: 'Dean created successfullty', result});
 }
 
-// add facility director
-exports.addFaciltyDirector = async (req,res,next) => {
-  const {director} = req.body
-  const {facilityId} = req.query
-  director.image = null
-  let result
 
-  try {
-    await Facility.findOneAndUpdate({facilityId},{"director":director},{new:true})
-    await Facility.findOne({facilityId},{_id:0})
-  } catch (error) {
-  console.log(error);
-    
-  }
-  res.json({success: true, message: 'Facility Director created successfullty', result});
-}
 
 
 // edit dean
@@ -2916,18 +2684,7 @@ exports.removeDepartmentProgram = async (req,res,next) => {
   }
 }
 
-// delete serviceTool
-exports.removeServiceTool = async (req,res,next) => {
-  const {serviceId,serviceToolId} = req.query;
 
-  try {
-    await serviceToolDelete(serviceId,serviceToolId,req,res)
-    
-  } catch (error) {
-  console.log({success: false, error})
-    
-  }
-}
 
 // delete or remove staff
 exports.removeDepartmentStaff = async (req,res,next) => {
@@ -2994,17 +2751,7 @@ exports.removeDepartment = async (req,res,next) => {
   }
 }
 
-// delete service
-exports.removeService = async (req,res,next) => {
-  const {serviceId,facilityId} = req.query;
-  try {
-     await serviceDelete(Facility,serviceId,facilityId,req,res)
-    
-  } catch (error) {
-  console.log({success: false, error})
-    
-  }
-}
+
 
 // About us start here
 exports.createAbout = async (req,res,next) => {
