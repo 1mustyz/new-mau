@@ -3,6 +3,7 @@ const router = express.Router()
 const adminController = require('../controllers/adminController')
 const facilityController = require('../controllers/facilityController')
 const campusLifeController = require('../controllers/campusLifeController')
+const interventionController = require('../controllers/interventionController')
 
 // const passport = require('passport')
 const idChecker = require('../middlewares/idChecker')
@@ -18,6 +19,9 @@ router.post('/add-faculty', adminController.addFaculty)
 
 // create facilty
 router.post('/add-facilty', facilityController.addFacilities)
+
+// create interventions
+router.post('/add-intervention', interventionController.addIntervention)
 
 // create faculty
 router.post('/add-faculty-from-file', adminController.createFacultyFromAfile)
@@ -155,6 +159,12 @@ router.put('/edit-faculty', adminController.editFaculty)
 // edit facility
 router.put('/edit-facility', facilityController.editFacility)
 
+// edit intervention
+router.put('/edit-intervention', interventionController.editIntervention)
+
+// edit intervention list
+router.put('/edit-intervention-list', interventionController.editInterventionList)
+
 // edit facility service
 router.put('/edit-facility-service', facilityController.editFacilityService)
 
@@ -184,6 +194,9 @@ router.put('/add-facility-director', facilityController.addFaciltyDirector)
 
 // add department
 router.put('/add-department', adminController.addDepartment)
+
+// add intervention list
+router.put('/add-intervention-list', interventionController.addInterventionList)
 
 // add department from file
 router.put('/add-department-from-file', adminController.createDepartmentFromAfile)
