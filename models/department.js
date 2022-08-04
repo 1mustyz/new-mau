@@ -4,7 +4,9 @@ const ProgramSchema = require('./centerPrograms')
 
 const StaffSchema = Schema({
     staffId: { type: String, required: true, unique: [ true, 'ID Number already exist' ] },
-    qualification: {type: Array, default:[]},
+    rank: {type: String, default: null},
+    major: {type: String, default: null},
+    email: {type: String, default: null},
     name:{type: String, default: null},
     image:{type: String, default: null},
     password:{type:String}
