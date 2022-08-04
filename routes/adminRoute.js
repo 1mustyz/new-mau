@@ -47,6 +47,9 @@ router.put('/upload-campus-life-image', campusLifeController.addCampusLifeImage)
 // add image about leadership
 router.put('/upload-about-leadership-image', adminController.addAboutImages)
 
+// add image intervention
+router.put('/upload-intervention-image', interventionController.addInterventionListImage)
+
 // add about
 router.put('/add-about-leadership', adminController.createAbout)
 
@@ -119,6 +122,9 @@ router.get('/get-single-news-event', adminController.getSingleNewsEvents)
 
 // get all faculties
 router.get('/get-all-faculties-schools-college', adminController.getAllFacultiesSchoolsCollege)
+
+// get all interventions
+router.get('/get-all-interventions', interventionController.getAllInterventions)
 
 // get single faculty
 router.get('/get-single-faculty', adminController.singleFaculty)
@@ -237,6 +243,12 @@ router.put('/remove-department', adminController.removeDepartment)
 
 // remove service
 router.put('/remove-service', facilityController.removeService)
+
+// remove intervention list
+router.put('/remove-intervention-list', interventionController.removeInterventionList)
+
+// remove intervention
+router.delete('/remove-intervention', interventionController.removeIntervention)
 
 // remove faculty
 router.delete('/remove-faculty', adminController.removeFaculty)

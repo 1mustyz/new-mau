@@ -4,6 +4,7 @@ const { singleUpload, singleFileUpload, singleAllMediaUpload } = require('../mid
 const fs = require('fs')
 const multer = require('multer')
 const cloudinary = require('cloudinary');
+const {interventionListDelete} = require('./interventionListDelete')
 
 // add interventions
 exports.addIntervention = async (req,res,next) => {
@@ -82,11 +83,11 @@ exports.addInterventionList = async (req,res,next) => {
    
   }
 
-   // delete service
-exports.removeService = async (req,res,next) => {
-    const {serviceId,facilityId} = req.query;
+   // delete intervention list
+exports.removeInterventionList = async (req,res,next) => {
+    const {eventId,interventionId} = req.query;
     try {
-       await serviceDelete(Facility,serviceId,facilityId,req,res)
+       await interventionListDelete(Intervention,eventId,interventionId,req,res)
       
     } catch (error) {
     console.log({success: false, error})
@@ -94,45 +95,23 @@ exports.removeService = async (req,res,next) => {
     }
   }
 
-  // delete or remove facility
-exports.removeFacility = async (req,res,next) => {
-    const {facilityId} = req.query     
+  // delete or remove intervention
+exports.removeIntervention = async (req,res,next) => {
+    const {interventionId} = req.query   
+
     const bigPromise = async () => {
-      const resultImage = await Facility.findOne({facilityId:facilityId})
-      console.log(resultImage.director)
-      //remove directors image
-      if(resultImage.director != null && resultImage.director != undefined ){
-        if(resultImage.director.image != null && resultImage.director.image != undefined ){
-  
-          const ImageName = resultImage.director.image.split('/').splice(7)
-          console.log('-----------------',ImageName)
-    
-          cloudinary.v2.api.delete_resources_by_prefix(ImageName[0], 
-          {
-            invalidate: true,
-            resource_type: "raw"
-          }, 
-          function(error,result) {
-            console.log(result, error) 
-          }); 
-        }
-      }
-  
+      const resultImage = await Intervention.findOne({interventionId:interventionId})
+      console.log(resultImage)
   
       // remove service tools image
-      if(resultImage.service != null && resultImage.service != undefined){
     
-        if(resultImage.service.length !=0 ){
-          resultImage.service.map((srv)=>{
-            console.log(srv)
+        if(resultImage.interventionList.length !=0 ){
+          resultImage.interventionList.map((list)=>{
+            console.log(list)
       
-            if (srv.serviceTools != null && srv.serviceTools != undefined){
-    
-              if (srv.serviceTools.length != 0){
-                  srv.serviceTools.map((tool) => {
-                  console.log(tool)
-                  if(tool.image != undefined && tool.image != null){
-                    const ImageName = tool.image.split('/').splice(7)
+            if (list.image != null && list.image != undefined){
+                  console.log(list.image)
+                    const ImageName = list.image.split('/').splice(7)
                         console.log('-----------------',ImageName)
                 
                         cloudinary.v2.api.delete_resources_by_prefix(ImageName[0], 
@@ -143,15 +122,12 @@ exports.removeFacility = async (req,res,next) => {
                         function(error,result) {
                           console.log(result, error) 
                         }); 
-                  }
-                })
-              }
+               
             }
             
           })
     
         }
-      }
   
     }
     const myPromise = new Promise(async (resolve, reject) => {
@@ -161,16 +137,16 @@ exports.removeFacility = async (req,res,next) => {
            
       let result
       
-      await Facility.findOneAndDelete({"facilityId":facilityId})
-      result = await Facility.find()
-      res.json({success: true, message: `Facility with the ID ${facilityId} has been removed`, result})
+      await Intervention.findOneAndDelete({"Intervention":Intervention})
+      result = await Intervention.find()
+      res.json({success: true, message: `Intervention with the ID ${Intervention} has been removed`, result})
   })
   
   }
 
-  exports.addFacilityServiceToolImage = async (req,res, next) => {
-    const {serviceId,serviceToolId} = req.query
-    console.log(serviceId)
+  exports.addInterventionListImage = async (req,res, next) => {
+    const {eventId} = req.query
+    console.log(eventId)
     try {
       fs.rmSync('./public/images', { recursive: true });
     } catch(err) {
@@ -200,23 +176,21 @@ exports.removeFacility = async (req,res,next) => {
   
         try {
   
-            const result = await Facility.aggregate([
-              {$match: {"service.serviceId": serviceId}},
-              {$project: {service:1}},
-              {$unwind: "$service"},
-              {$match: {"service.serviceId": serviceId}},
-              {$project: {tools:"$service.serviceTools"}},
-              {$unwind: "$tools"},
-              {$match: {"tools.serviceToolId":serviceToolId}}
+            const result = await Intervention.aggregate([
+              {$match: {"interventionList.eventId": eventId}},
+              {$project: {interventionList:1}},
+              {$unwind: "$interventionList"},
+              {$match: {"interventionList.eventId": eventId}}
+              
             ])
     
-            console.log(result[0].tools.image)
+            console.log('--',result[0].interventionList.image)
             
-            if(result[0].tools.image != "null"){
+            if(result[0].interventionList.image != null){
             // console.log('222222','hshsisi')
     
               
-              const imageName = result[0].tools.image.split('/').splice(7)
+              const imageName = result[0].interventionList.image.split('/').splice(7)
               console.log('-----------------',imageName)
     
                cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
@@ -232,21 +206,21 @@ exports.removeFacility = async (req,res,next) => {
             cloudinary.v2.uploader.upload(req.file.path, 
             { resource_type: "raw" }, 
             async function(error, result) {
-              // console.log('444444',result, error); 
+              console.log('444444',result, error); 
     
-              await Facility.findOneAndUpdate({"service.serviceId": serviceId},{$set:{
-                "service.$[e1].serviceTools.$[e2].image":result.secure_url,
+              await Intervention.findOneAndUpdate({"interventionList.eventId": eventId},{$set:{
+                "interventionList.$[e1].image":result.secure_url,
               }},
               { 
                 arrayFilters: [
-                  {"e1.serviceId": serviceId},
-                  { "e2.serviceToolId": serviceToolId}],
+                  {"e1.eventId": eventId},
+                  ],
               })
 
-              allResult = await Facility.findOne({"service.serviceId": serviceId})
+              let allResult = await Intervention.findOne({"interventionList.eventId": eventId})
               
               res.json({success: true,
-                message: allResults,
+                message: allResult,
                           },
               
               );
@@ -263,5 +237,15 @@ exports.removeFacility = async (req,res,next) => {
           
     
     })
+  }
+
+  exports.getAllInterventions = async (req,res,next) => {
+
+    try{
+      const result = await Intervention.find()
+      res.json({success:true, result})
+    }catch(e){
+      console.log(e)
+    }
   }
   
