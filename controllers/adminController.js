@@ -1733,19 +1733,19 @@ exports.allPrograms = async (req, res, next) => {
 // get all department
 exports.getAllDepartment = async (req,res, next) => {
 
-  const allDepartment = async(Document,id,name) => {
+  const allDepartment = async(Document,id,name,activity) => {
 
   return result = await Document.aggregate([
     {$match:{}},
-    {$project : {_id:0, [id]:1, [name]:1, department:"$departmentList"}},
+    {$project : {_id:0, "activity":activity, [id]:1, [name]:1, department:"$departmentList"}},
     {$unwind: "$department"}
   ]);
     
   }
   try {
-    const facultyDepartment = await allDepartment(Faculty,'facultyId','facultyName');
-    const collegeDepartment = await allDepartment(College, 'collegeId','collegeName');
-    const schoolDepartment = await allDepartment(School, 'schoolId', 'schoolName');
+    const facultyDepartment = await allDepartment(Faculty,'facultyId','facultyName','faculty');
+    const collegeDepartment = await allDepartment(College, 'collegeId','collegeName','college');
+    const schoolDepartment = await allDepartment(School, 'schoolId', 'schoolName','school');
 
     res.json({success: true, message: [...facultyDepartment, ...collegeDepartment, ...schoolDepartment]})
   } catch (error) {
