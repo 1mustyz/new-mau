@@ -1469,7 +1469,7 @@ exports.singleFaculty = async (req,res, next) => {
            "shortNote":result.shortNote,
            "image":result.image,
            "dean":result.dean,
-           "facultyId":result.facultyId,
+           [target]:result[target],
            "mission": result.mission,
            "vission": result.vission,
            "programList":programList
@@ -1487,7 +1487,7 @@ exports.singleFaculty = async (req,res, next) => {
           "shortNote":result.shortNote,
           "image":result.image,
           "dean":result.dean,
-          "facultyId":result.facultyId,
+          [target]:result[target],
           "departmentList":dptList
         }
       }
