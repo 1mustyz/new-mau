@@ -231,7 +231,7 @@ exports.addFaciltyDirector = async (req,res,next) => {
    
   }
 
-  // edit facility
+  // edit facility service
   exports.editFacilityService = async (req,res,next) => {
     const {serviceId} = req.query;
     const {description} = req.body

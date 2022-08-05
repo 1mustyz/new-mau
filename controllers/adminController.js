@@ -2479,6 +2479,7 @@ exports.editDepartmentProgram = async (req,res,next) => {
         {"programs.programId":programId},
         {$set:{
           "programs.$[e2].name":program.name,
+          "programs.$[e2].honor":program.honor,
           "programs.$[e2].mission":program.mission,
           "programs.$[e2].vission":program.vission,
           "programs.$[e2].admissionRequirement":program.admissionRequirement,
@@ -2499,6 +2500,7 @@ exports.editDepartmentProgram = async (req,res,next) => {
         {"departmentList.programs.programId":programId},
         {$set:{
           "departmentList.$[e1].programs.$[e2].name":program.name,
+          "departmentList.$[e1].programs.$[e2].honor":program.honor,
           "departmentList.$[e1].programs.$[e2].mission":program.mission,
           "departmentList.$[e1].programs.$[e2].vission":program.vission,
           "departmentList.$[e1].programs.$[e2].admissionRequirement":program.admissionRequirement,
