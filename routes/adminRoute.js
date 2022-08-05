@@ -3,7 +3,12 @@ const router = express.Router()
 const adminController = require('../controllers/adminController')
 const facilityController = require('../controllers/facilityController')
 const campusLifeController = require('../controllers/campusLifeController')
+const alumniController = require('../controllers/alumniController')
 const interventionController = require('../controllers/interventionController')
+const galleryController = require('../controllers/galleryController')
+const oerController = require('../controllers/oerController')
+
+
 
 // const passport = require('passport')
 const idChecker = require('../middlewares/idChecker')
@@ -32,17 +37,35 @@ router.post('/add-downloadbles', adminController.addDownloadable)
 // add portals
 router.post('/add-portals-links', adminController.addPortalLinks)
 
+// create gallery
+router.post('/create-gallery', galleryController.addGallery)
+
+// create oer
+router.post('/create-oer', oerController.addOer)
+
 // create main event
 router.put('/create-home-event', adminController.addHomeEvent)
 
 // create main event
 router.put('/create-campus-life', campusLifeController.addCampusLife)
 
+// create alumni event
+router.put('/create-alumni', alumniController.addAlumni)
+
 // add image to an event
 router.put('/upload-an-image', adminController.addAnImageToEvent)
 
 // add campus life image
 router.put('/upload-campus-life-image', campusLifeController.addCampusLifeImage)
+
+// add alumni image
+router.put('/upload-alumni-image', alumniController.addAlumniImage)
+
+// add gallery image
+router.put('/upload-gallery-image', galleryController.addGalleryImage)
+
+// add oer image
+router.put('/upload-oer-file', oerController.addOerFile)
 
 // add image about leadership
 router.put('/upload-about-leadership-image', adminController.addAboutImages)
@@ -61,6 +84,15 @@ router.put('/edit-homepage-event', adminController.editEvent)
 
 // edit campus life
 router.put('/edit-campus-life', campusLifeController.editCampusLife)
+
+// edit alumni
+router.put('/edit-alumni', alumniController.editAlumni)
+
+// edit gallery
+router.put('/edit-gallery', galleryController.editGallery)
+
+// edit oer
+router.put('/edit-oer', oerController.editOer)
 
 // edit about page
 router.put('/edit-about-leadership', adminController.editAbout)
@@ -104,6 +136,14 @@ router.get('/get-home-event', adminController.getHomeEvent)
 // get campus life
 router.get('/get-campus-life', campusLifeController.getCampusLife)
 
+// get alumni
+router.get('/get-alumni', alumniController.getAlumni)
+
+// get all gallery
+router.get('/get-all-gallery', galleryController.getGallery)
+
+// get all oer
+router.get('/get-all-oer', oerController.getOer)
 
 // get home event
 router.get('/get-about-leadership', adminController.getAboutLeadership)
@@ -155,6 +195,9 @@ router.put('/remove-event', adminController.removeEvent)
 
 // remove campus life event
 router.put('/remove-campus-life-event', campusLifeController.removeCampusLifeEvent)
+
+// remove alumni  event
+router.put('/remove-alumni-event', alumniController.removeAlumniEvent)
 
 // remove about
 router.put('/remove-about-leadership', adminController.removeAboutLeadershipContent)
@@ -249,6 +292,12 @@ router.put('/remove-intervention-list', interventionController.removeInterventio
 
 // remove intervention
 router.delete('/remove-intervention', interventionController.removeIntervention)
+
+// remove gallery
+router.delete('/remove-gallery', galleryController.removeGallery)
+
+// remove oer
+router.delete('/remove-oer', oerController.removeOer)
 
 // remove faculty
 router.delete('/remove-faculty', adminController.removeFaculty)
