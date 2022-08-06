@@ -2444,7 +2444,13 @@ exports.editHod = async (req,res,next) => {
      await Document.findOneAndUpdate(
       {"departmentList.departmentId":departmentId},
       {$set:{
-        "departmentList.$.hod":hod 
+        "departmentList.$.hod.name":hod.name,
+        "departmentList.$.hod.mail":hod.mail,
+        "departmentList.$.hod.vission":hod.vission,
+        "departmentList.$.hod.mission":hod.mission,
+        "departmentList.$.hod.introduction":hod.introduction,
+
+
       }},{new:true})
       return await Document.findOne({"departmentList.departmentId":departmentId},{_id:0,"departmentList.staffList.password":0})
 
