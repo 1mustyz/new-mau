@@ -2369,7 +2369,7 @@ exports.createProgranFromAfile = async (req,res,next) => {
       })
       // await Document.insertMany(inserter)
 
-      const documents = await Document.find({})
+      // const documents = await Document.find({})
 
       try {
         fs.unlinkSync(patth)
@@ -2377,7 +2377,7 @@ exports.createProgranFromAfile = async (req,res,next) => {
       } catch(err) {
         console.error(err)
       }
-      res.json({success:true, message:documents})
+      res.json({success:true, message:inserter})
     })
 
   }
@@ -2551,7 +2551,9 @@ exports.editDepartmentStaffs = async (req,res,next) => {
       {"staffList.staffId":staffId},
       {$set:{
         "staffList.$[e2].name":staff.name,
-        "staffList.$[e2].qualification":staff.qualification
+        "staffList.$[e2].rank":staff.rank,
+        "staffList.$[e2].major":staff.major,
+        "staffList.$[e2].email":staff.email,
       }},
       { 
         arrayFilters: [
@@ -2564,7 +2566,9 @@ exports.editDepartmentStaffs = async (req,res,next) => {
       {"departmentList.staffList.staffId":staffId},
       {$set:{
         "departmentList.$[e1].staffList.$[e2].name":staff.name,
-        "departmentList.$[e1].staffList.$[e2].qualification":staff.qualification
+        "departmentList.$[e1].staffList.$[e2].rank":staff.rank,
+        "departmentList.$[e1].staffList.$[e2].major":staff.major,
+        "departmentList.$[e1].staffList.$[e2].email":staff.email
       }},
       { 
         arrayFilters: [
