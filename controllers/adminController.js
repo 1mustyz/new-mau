@@ -1730,6 +1730,159 @@ exports.allPrograms = async (req, res, next) => {
 
 }
 
+exports.allSingleTypePrograms = async (req, res, next) => {
+  const {type} = req.query
+
+  const findPrograms = async (Document,target,activity) => {
+
+    if (target == 'center' || target == 'unit'){
+      return await Document.aggregate([
+        {$match:{}},
+        {$project: {programs:1, _id:0}},
+        {$unwind: {path:"$programs"}},
+        {$project: {programs:{programId:"$programs.programId", name:"$programs.name", type:"$programs.type",activity:`${target}`}}},
+        // {$project: {programs:"$departmentList.programs"}},
+        // {$unwind: {path:"$programs"}},
+    
+      ])
+    }
+
+    return await Document.aggregate([
+      {$match:{}},
+      {$project: {departmentList:1, _id:0}},
+      {$unwind: {path:"$departmentList"}},
+      {$project: {programs:"$departmentList.programs"}},
+      {$unwind: {path:"$programs"}},
+      {$project: {programs:{programId:"$programs.programId", name:"$programs.name", type:"$programs.type",activity:`${target}`}}},
+  
+    ])
+
+  } 
+
+  let undergraduate = []
+  let postgraduate = []
+  let diploma = []
+  let distanceLearningUnderGraduate = []
+  let distanceLearningPostGraduate = []
+  let sandwichUnderGraduate = []
+  let preDegreeIjmb = []
+
+  const facultyPrograms = await findPrograms(Faculty,"faculty")
+  const schoolsPrograms = await findPrograms(School,"school")
+  const collegePrograms = await findPrograms(College,"college")
+  const centerPrograms = await findPrograms(Center,"center")
+  const unitPrograms = await findPrograms(Unit,"unit")
+
+  // console.log(centerPrograms)
+
+  const filterPrograms = () => {
+    facultyPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        diploma.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        distanceLearningUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        distanceLearningPostGraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        sandwichUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        preDegreeIjmb.push(prg.programs)
+      }
+    })
+  
+    schoolsPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        diploma.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        distanceLearningUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        distanceLearningPostGraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        sandwichUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        preDegreeIjmb.push(prg.programs)
+      }
+    })
+  
+    collegePrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        diploma.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        distanceLearningUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        distanceLearningPostGraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        sandwichUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        preDegreeIjmb.push(prg.programs)
+      }
+    })
+  
+    centerPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        diploma.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        distanceLearningUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        distanceLearningPostGraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        sandwichUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        preDegreeIjmb.push(prg.programs)
+      }
+    })
+  
+    unitPrograms.forEach((prg)=>{
+      // console.log()
+      if (prg.programs.type == "undergraduate"){
+        undergraduate.push(prg.programs)
+      }else if (prg.programs.type == "postgraduate"){
+        postgraduate.push(prg.programs)
+      }else if (prg.programs.type == "diploma"){
+        diploma.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningUnderGraduate"){
+        distanceLearningUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "distanceLearningPostGraduate"){
+        distanceLearningPostGraduate.push(prg.programs)
+      }else if (prg.programs.type == "sandwichUnderGraduate"){
+        sandwichUnderGraduate.push(prg.programs)
+      }else if (prg.programs.type == "preDegreeIjmb"){
+        preDegreeIjmb.push(prg.programs)
+      }
+    })
+  }
+
+  const promise = new Promise((resolve,reject)=>{
+    resolve(filterPrograms())
+  })
+  promise.then(()=>{
+    res.json({success:true, undergraduate,postgraduate})
+
+  })
+
+}
+
+
 // get all department
 exports.getAllDepartment = async (req,res, next) => {
 
@@ -2271,16 +2424,41 @@ exports.addDepartmentStaff = async (req,res,next) => {
       })
     }
     
-
+    
   }
 
   try {
 
-    if (activity == "faculty") result = await createAcademicStaff(Faculty)
-    else if (activity == "college") result = await createAcademicStaff(College)
-    else if (activity == "school") result = await createAcademicStaff(School)
-    else if (activity == "center") result = await createAcademicStaff(Center)
-    else if (activity == "unit") result = await createAcademicStaff(Unit)
+    if (activity == "faculty"){
+
+      result = await createAcademicStaff(Faculty)
+      res.json({success: true, message: 'Staff created successfullty', result});
+
+    } 
+    else if (activity == "college"){
+
+      result = await createAcademicStaff(College)
+      res.json({success: true, message: 'Staff created successfullty', result});
+
+    } 
+    else if (activity == "school"){
+
+      result = await createAcademicStaff(School)
+      res.json({success: true, message: 'Staff created successfullty', result});
+
+    } 
+    else if (activity == "center"){
+
+      result = await createAcademicStaff(Center)
+      res.json({success: true, message: 'Staff created successfullty', result});
+
+    } 
+    else if (activity == "unit"){
+
+      result = await createAcademicStaff(Unit)
+      res.json({success: true, message: 'Staff created successfullty', result});
+
+    } 
     else {
       res.json({success: false, message: "Wrong parameters"});
 
@@ -2290,7 +2468,6 @@ exports.addDepartmentStaff = async (req,res,next) => {
     console.log(error)
     
   }
-  res.json({success: true, message: 'Staff created successfullty', result});
 }
 
 // add department programs
@@ -2368,7 +2545,7 @@ exports.createProgranFromAfile = async (req,res,next) => {
           admissionRequirement: prg.admissionRequirement,
           careerProspect: prg.carreerProspects.toString(),
           graduationRequirement: prg.graduationRequirements,
-          type: prg.programType.toString(),
+          type: prg.programType.toString().toLowerCase(),
           programId: prg.programId.toString(),
         }
         if(activity == 'center' || activity == 'unit'){
