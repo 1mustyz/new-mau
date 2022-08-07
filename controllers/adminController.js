@@ -1000,11 +1000,11 @@ exports.addAnImageToEvent = async (req,res, next) => {
               })
               console.log(resultFilter)
               console.log(resultFilter[0].hod.image)
-              if(resultFilter[0].hod.image != null){
+              if(resultFilter[0].hod.image != null && resultFilter[0].hod.image != undefined){
               // console.log('222222','hshsisi')
       
                 
-              const imageName = resultFilter[0].image.split('/').splice(7)
+              const imageName = resultFilter[0].hod.image.split('/').splice(7)
               console.log('-----------------',imageName)
       
                 cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
