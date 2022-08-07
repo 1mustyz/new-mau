@@ -2193,7 +2193,9 @@ exports.editDepartment = async (req,res,next) => {
       {$set:{
         "departmentList.$.departmentName":department.departmentName,
         "departmentList.$.mission":department.mission,
-        "departmentList.$.vission":department.vission
+        "departmentList.$.vission":department.vission,
+        "departmentList.$.introduction":department.introduction
+
       }},{new:true})
   }
 
@@ -2358,7 +2360,7 @@ exports.createProgranFromAfile = async (req,res,next) => {
 
         ]
         prg['graduationRequirements'] = [ prg['graduationRequirements'].toString()]
-        let prgName = prg.programName.toString().split(' ')[1]
+        let prgName = prg.programName.toString().split(' ').slice(1).join(" ")
         let honor = prg.programName.toString().split(' ')[0]
         let dt = {
           name: prgName,
