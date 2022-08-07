@@ -271,6 +271,9 @@ router.put('/remove-dean', adminController.removeDean)
 // remove department program
 router.put('/remove-department-program', adminController.removeDepartmentProgram)
 
+// remove all department program
+router.put('/remove-all-department-program', adminController.removeAllDepartmentProgram)
+
 // remove serviceTool
 router.put('/remove-service-serviceTool', facilityController.removeServiceTool)
 

@@ -1631,15 +1631,15 @@ exports.allPrograms = async (req, res, next) => {
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
       }else if (prg.programs.type == "diploma"){
-        postgraduate.push(prg.programs)
+        diploma.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningUnderGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningPostGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningPostGraduate.push(prg.programs)
       }else if (prg.programs.type == "sandwichUnderGraduate"){
-        postgraduate.push(prg.programs)
+        sandwichUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "preDegreeIjmb"){
-        postgraduate.push(prg.programs)
+        preDegreeIjmb.push(prg.programs)
       }
     })
   
@@ -1650,15 +1650,15 @@ exports.allPrograms = async (req, res, next) => {
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
       }else if (prg.programs.type == "diploma"){
-        postgraduate.push(prg.programs)
+        diploma.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningUnderGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningPostGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningPostGraduate.push(prg.programs)
       }else if (prg.programs.type == "sandwichUnderGraduate"){
-        postgraduate.push(prg.programs)
+        sandwichUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "preDegreeIjmb"){
-        postgraduate.push(prg.programs)
+        preDegreeIjmb.push(prg.programs)
       }
     })
   
@@ -1669,15 +1669,15 @@ exports.allPrograms = async (req, res, next) => {
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
       }else if (prg.programs.type == "diploma"){
-        postgraduate.push(prg.programs)
+        diploma.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningUnderGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningPostGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningPostGraduate.push(prg.programs)
       }else if (prg.programs.type == "sandwichUnderGraduate"){
-        postgraduate.push(prg.programs)
+        sandwichUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "preDegreeIjmb"){
-        postgraduate.push(prg.programs)
+        preDegreeIjmb.push(prg.programs)
       }
     })
   
@@ -1688,15 +1688,15 @@ exports.allPrograms = async (req, res, next) => {
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
       }else if (prg.programs.type == "diploma"){
-        postgraduate.push(prg.programs)
+        diploma.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningUnderGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningPostGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningPostGraduate.push(prg.programs)
       }else if (prg.programs.type == "sandwichUnderGraduate"){
-        postgraduate.push(prg.programs)
+        sandwichUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "preDegreeIjmb"){
-        postgraduate.push(prg.programs)
+        preDegreeIjmb.push(prg.programs)
       }
     })
   
@@ -1707,15 +1707,15 @@ exports.allPrograms = async (req, res, next) => {
       }else if (prg.programs.type == "postgraduate"){
         postgraduate.push(prg.programs)
       }else if (prg.programs.type == "diploma"){
-        postgraduate.push(prg.programs)
+        diploma.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningUnderGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "distanceLearningPostGraduate"){
-        postgraduate.push(prg.programs)
+        distanceLearningPostGraduate.push(prg.programs)
       }else if (prg.programs.type == "sandwichUnderGraduate"){
-        postgraduate.push(prg.programs)
+        sandwichUnderGraduate.push(prg.programs)
       }else if (prg.programs.type == "preDegreeIjmb"){
-        postgraduate.push(prg.programs)
+        preDegreeIjmb.push(prg.programs)
       }
     })
   }
@@ -2346,16 +2346,28 @@ exports.createProgranFromAfile = async (req,res,next) => {
       // console.log(inserter)
       inserter.map(async(prg) => {
         prg[`programId`] = randomstring.generate(8)
-        prg['admissionRequirement'] = [ prg['admissionRequirement1'].toString()]
-        prg['graduationRequirement'] = [ prg['graduationRequirement'].toString()]
+        prg['admissionRequirement'] = [ 
+          {header:"admissionRequirementOlevel",
+          content:prg['admissionRequirementOlevel'].toString() == ''? null : prg['admissionRequirementOlevel'].toString()},
+          {header:"admissionRequirementUtme",
+          content:prg['admissionRequirementUtme'].toString() == ''? null : prg['admissionRequirementUtme'].toString()},
+          {header:"admissionRequirementDe",
+          content:prg['admissionRequirementDe'].toString() == ''? null : prg['admissionRequirementDe'].toString()},
+          {header:"admissionRequirementPg",
+          content:prg['admissionRequirementPg'].toString() == ''? null : prg['admissionRequirementPg'].toString()}
+
+        ]
+        prg['graduationRequirements'] = [ prg['graduationRequirements'].toString()]
+        let prgName = prg.programName.toString().split(' ')[1]
+        let honor = prg.programName.toString().split(' ')[0]
         let dt = {
-          name: prg.programName.toString(),
+          name: prgName,
+          honor: honor,
           admissionRequirement: prg.admissionRequirement,
-          careerProspect: prg.careerProspect.toString(),
-          graduationRequirement: prg.graduationRequirement,
+          careerProspect: prg.carreerProspects.toString(),
+          graduationRequirement: prg.graduationRequirements,
           type: prg.programType.toString(),
           programId: prg.programId.toString(),
-          programDuration: prg.programDuration.toString()
         }
         if(activity == 'center' || activity == 'unit'){
           let target = activity+'Id'
@@ -2369,7 +2381,7 @@ exports.createProgranFromAfile = async (req,res,next) => {
       })
       // await Document.insertMany(inserter)
 
-      // const documents = await Document.find({})
+      const documents = await Document.find({})
 
       try {
         fs.unlinkSync(patth)
@@ -2377,7 +2389,7 @@ exports.createProgranFromAfile = async (req,res,next) => {
       } catch(err) {
         console.error(err)
       }
-      res.json({success:true, message:inserter})
+      res.json({success:true, message:documents})
     })
 
   }
@@ -2649,7 +2661,7 @@ exports.removeHod = async (req,res,next) => {
 
 // delete or department program
 exports.removeDepartmentProgram = async (req,res,next) => {
-  const {departmentId,programId,activity,entityId} = req.query;
+  const {departmentId,programId,activity,entityId,target} = req.query;
 
   const removeProgram = async (Document) => {
     if (activity == 'center' || activity == 'unit'){
@@ -2658,7 +2670,7 @@ exports.removeDepartmentProgram = async (req,res,next) => {
         {$pull:{"programs": {programId: programId}}},
        
         )
-      return await Document.findOne({centerId:entityId},{"staffList.password":0})
+      return await Document.findOne({[target]:entityId},{"staffList.password":0})
     }else{
       await Document.findOneAndUpdate(
         {"departmentList.programs.programId":programId},
@@ -2693,6 +2705,54 @@ exports.removeDepartmentProgram = async (req,res,next) => {
     
   }
 }
+
+// delete or all department program
+exports.removeAllDepartmentProgram = async (req,res,next) => {
+  const {departmentId,target,activity,entityId} = req.query;
+
+  const removeProgram = async (Document) => {
+    if (activity == 'center' || activity == 'unit'){
+      await Document.findOneAndUpdate(
+        {[target]:entityId},
+        {$set:{"programs": []}},
+       
+        )
+      return await Document.findOne({[target]:entityId},{"staffList.password":0})
+    }else{
+      await Document.findOneAndUpdate(
+        {"departmentList.departmentId":departmentId},
+        {$set:{"departmentList.$[e1].programs": []}},
+        { 
+          arrayFilters: [
+            {"e1.departmentId": departmentId},
+            ],
+        }
+        )
+      return await Document.findOne({"departmentList.departmentId":departmentId},{"departmentList.staffList.password":0})
+    }
+  }
+
+  try {
+    let result
+
+    
+    if (activity == "faculty") result = await removeProgram(Faculty)
+    else if (activity == "college") result = await removeProgram(College)
+    else if (activity == "school") result = await removeProgram(School)
+    else if (activity == "center") result = await removeProgram(Center)
+    else if (activity == "unit") result = await removeProgram(Unit)
+    else {
+      res.json({success: false, message: "Wrong parameters"});
+
+    }
+    res.json({success: true,  result})
+    
+  } catch (error) {
+  console.log({success: false, error})
+    
+  }
+}
+
 
 
 
