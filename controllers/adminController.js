@@ -3082,6 +3082,12 @@ exports.editAbout = async (req,res,next) => {
     allEvents = await About.findOneAndUpdate({"council.evntId": eventId},{$set: {
       "council.$.name": data.name, 
       "council.$.rank": data.rank, 
+      "council.$.detail": data.detail,
+      "council.$.facebook": data.facebook,
+      "council.$.twitter": data.twitter,
+      "council.$.linkedIn": data.linkedIn,
+      "council.$.mail": data.mail,
+
      
     }},{new:true})
 
@@ -3098,9 +3104,28 @@ exports.editAbout = async (req,res,next) => {
 
     }},{new:true})
   }else if(activity == "chancellor"){
-    allEvents = await About.findOneAndUpdate({},{$set: {
+    allEvents = await About.updateOne({},{$set: {
       "chancellor.name": data.name,
-      "chancellor.rank": data.detail,
+      "chancellor.rank": data.rank,
+      "chancellor.detail": data.detail,
+      "chancellor.facebook": data.facebook,
+      "chancellor.twitter": data.twitter,
+      "chancellor.linkedIn": data.linkedIn,
+      "chancellor.mail": data.mail,
+
+
+    }},{new:true})
+
+  }else if(activity == "proChancellor"){
+    allEvents = await About.findOneAndUpdate({},{$set: {
+      "proChancellor.name": data.name,
+      "proChancellor.rank": data.rank,
+      "proChancellor.detail": data.detail,
+      "proChancellor.facebook": data.facebook,
+      "proChancellor.twitter": data.twitter,
+      "proChancellor.linkedIn": data.linkedIn,
+      "proChancellor.mail": data.mail,
+
 
     }},{new:true})
   }
@@ -3144,16 +3169,13 @@ exports.addAboutImages = async (req,res, next) => {
         if(activity == "chancellor"){
 
           const result = await About.findOne()
-  
-          console.log(result)
-          
-          console.log(result.chancellor.image)
+           
           if(result.chancellor.image != undefined){
           // console.log('222222','hshsisi')
   
             
             const imageName = result.chancellor.image.split('/').splice(7)
-            console.log('-----------------',imageName)
+            // console.log('-----------------',imageName)
   
              cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
             {
@@ -3181,7 +3203,82 @@ exports.addAboutImages = async (req,res, next) => {
        
          
         
+        }else if(activity == "proChancellor"){
+
+          const result = await About.findOne()
+           
+          if(result.proChancellor.image != undefined){
+          // console.log('222222','hshsisi')
+  
+            
+            const imageName = result.proChancellor.image.split('/').splice(7)
+            // console.log('-----------------',imageName)
+  
+             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+            {
+              invalidate: true,
+                resource_type: "raw"
+            }, 
+              function(error,result) {
+                // console.log('33333333',result, error)
+              });  
+          }
+  
+          cloudinary.v2.uploader.upload(req.file.path, 
+          { resource_type: "raw" }, 
+          async function(error, result) {
+            // console.log('444444',result, error); 
+  
+            allResults = await About.findOneAndUpdate({},{$set: {"proChancellor.image": result.secure_url}},{new:true})
+            
+            res.json({success: true,
+              message: allResults,
+                        },
+            
+            );
+          });
+        
         }else if(activity == "principalOfficer"){
+          const result = await About.findOne({},{_id: 0,[activity]: 1})
+          
+          const resultFilter = result[activity].filter((evnt)=>{
+            return evnt.evntId == eventId
+          })
+          // console.log(resultFilter)
+          if(resultFilter[0].image != undefined){
+          // console.log('222222','hshsisi')
+  
+            
+            const imageName = resultFilter[0].image.split('/').splice(7)
+            // console.log('-----------------',imageName)
+  
+             cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+            {
+              invalidate: true,
+                resource_type: "raw"
+            }, 
+              function(error,result) {
+                // console.log('33333333',result, error)
+              });  
+          }
+  
+          cloudinary.v2.uploader.upload(req.file.path, 
+          { resource_type: "raw" }, 
+          async function(error, result) {
+            // console.log('444444',result, error); 
+  
+            allResults = await About.findOneAndUpdate({"principalOfficer.evntId": eventId},{$set: {"principalOfficer.$.image": result.secure_url}},{new:true})
+            
+            res.json({success: true,
+              message: allResults,
+                        },
+            
+            );
+          });
+       
+  
+  
+        }else if(activity == "council"){
           const result = await About.findOne({},{_id: 0,[activity]: 1})
           
           const resultFilter = result[activity].filter((evnt)=>{
@@ -3210,7 +3307,7 @@ exports.addAboutImages = async (req,res, next) => {
           async function(error, result) {
             // console.log('444444',result, error); 
   
-            allResults = await About.findOneAndUpdate({"principalOfficer.evntId": eventId},{$set: {"principalOfficer.$.image": result.secure_url}},{new:true})
+            allResults = await About.findOneAndUpdate({"council.evntId": eventId},{$set: {"principalOfficer.$.image": result.secure_url}},{new:true})
             
             res.json({success: true,
               message: allResults,
@@ -3221,7 +3318,7 @@ exports.addAboutImages = async (req,res, next) => {
        
   
   
-        } else{
+        }else{
           res.json({success:false, message: "Wrong parameters"})
         }
       }catch (e){
@@ -3245,7 +3342,7 @@ exports.removeAboutLeadershipContent = async (req,res,next) => {
 
   if(activity == "principalOfficer"){
     const imageName = resultFilter[0].image.split('/').splice(7)
-    console.log('-----------------',imageName)
+    // console.log('-----------------',imageName)
 
       cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
     {
@@ -3261,9 +3358,21 @@ exports.removeAboutLeadershipContent = async (req,res,next) => {
   res.json({success: true, message: `Event with the id ${eventId} has been removed`})
 
   }else if(activity == "council"){
+    const imageName = resultFilter[0].image.split('/').splice(7)
+    // console.log('-----------------',imageName)
+
+      cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+    {
+      invalidate: true,
+        resource_type: "raw"
+    }, 
+    function(error,result) {
+      console.log('33333333',result, error)
+    }); 
     
     await About.findOneAndUpdate({evntId:eventId},{$pull:{[activity]:{evntId: eventId}}})
-  res.json({success: true, message: `Event with the id ${eventId} has been removed`})
+    const result = await About.find()
+  res.json({success: true, message: `Event with the id ${eventId} has been removed`, result})
   }else{
   res.json({success: false, message: `Wrong parameters`})
 
