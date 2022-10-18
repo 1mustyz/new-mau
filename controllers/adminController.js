@@ -2494,6 +2494,8 @@ exports.addDepartmentProgram = async (req,res,next) => {
   const {program} = req.body
   program.programId = randomstring.generate(8)
 
+  console.log(program)
+
   const addProgam = async (Document) => {
     if(activity == 'center' || activity == 'unit'){
       let target = activity+'Id'
@@ -2737,15 +2739,15 @@ exports.editDepartmentProgram = async (req,res,next) => {
     else if (activity == "center") result = await editProgram(Center)
     else if (activity == "unit") result = await editProgram(Unit)
     else {
-      res.json({success: false, message: "Wrong parameters"});
+      return res.json({success: false, message: "Wrong parameters"});
 
     }
 
+    res.json({success: true, message: `Program from department with the ID ${departmentId} has been edited`,result})
     
   } catch (error) {
     console.log({success: false, error})
   }
-  res.json({success: true, message: `Program from department with the ID ${departmentId} has been edited`,result})
 }
 
 // edit department staffs
