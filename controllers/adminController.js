@@ -30,6 +30,8 @@ const cloudinarySetup = require('../middlewares/cluadinarySetup');
 
 const { paginatedResults } = require('./pagination');
 const portalLinks = require('../models/portalsLink');
+const cloudinaryUplouder = require('../middlewares/uploadCloudinary')
+
 
 
 // cloudinary configuration for saving files
@@ -413,20 +415,25 @@ exports.addDownloadable = async(req,res,next) => {
       if(req.file.size > 10000000) return res.json({success: false, message:'File size should not be greater 10mb'})
       if(req.file.mimetype == 'application/pdf'){
 
-        console.log(req.file,req.body)
-        cloudinary.v2.uploader.upload(req.file.path, 
-          { resource_type: "raw" }, 
-          async function(error, result) {
-            console.log('111111111111111111',result, error); 
-            req.body.downloadLink = result.secure_url
-            req.body.downloadId = randomstring.generate(8)
-            await Downloadable.collection.insertOne(req.body,{new:true})
-            const data = await Downloadable.find({})
-            res.json({success:true, message:data})
-  
-          });
+        // console.log(req.file,req.body)
+        try {
+          cloudinary.v2.uploader.upload(req.file.path, 
+            { resource_type: "raw" }, 
+            async function(error, result) {
+              // console.log('111111111111111111',result, error); 
+              req.body.downloadLink = result.secure_url
+              req.body.downloadId = randomstring.generate(8)
+              await Downloadable.collection.insertOne(req.body,{new:true})
+              const data = await Downloadable.find({})
+              res.json({success:true, message:data})
+    
+            });
+          
+        } catch (error) {
+          console.log(error)
+        }
       }else{
-        res.json({success:false})
+        res.json({success:false, message: "please only upload pdf document"})
 
       }
      
@@ -440,9 +447,14 @@ exports.addDownloadable = async(req,res,next) => {
 // get paginated download
 exports.getAllDownloadsWithPagination = async (req, res, next) => {
   const {page,limit} = req.query
+  let result
   try{
     const allDownloads = await Downloadable.find({},{_id:0,createdAt:0,updatedAt:0,__v:0})
-    const result = paginatedResults(allDownloads,page,limit)
+    if (limit === "All"){
+      result = allDownloads.reverse()
+    }else{
+      result = paginatedResults(allDownloads.reverse(),page,limit)
+    }
     res.json({success: true, page,limit, result})
   }catch(e){
 
@@ -485,7 +497,8 @@ exports.addPortalLinks = async (req,res,next) => {
   })
 
   try{
-    const result = await PortalLink.insertMany(portals,{new:true})
+    await PortalLink.insertMany(portals,{new:true})
+    const result = await PortalLink.find()
     res.json({success: true, result})
   }catch(e){
     console.log(e)
@@ -495,12 +508,17 @@ exports.addPortalLinks = async (req,res,next) => {
 // get paginated portals
 exports.getAllPortalsWithPagination = async (req, res, next) => {
   const {page,limit} = req.query
+  let result
   try{
     const allPortals = await PortalLink.find({},{_id:0,createdAt:0,updatedAt:0,__v:0})
-    const result = paginatedResults(allPortals,page,limit)
+    if(limit === "All"){
+      result = allPortals.reverse()
+    }else{
+      result = paginatedResults(allPortals.reverse(),page,limit)
+    }
     res.json({success: true, page,limit, result})
   }catch(e){
-
+    console.log(e)
   }
 }
 
@@ -3004,29 +3022,55 @@ exports.removeDepartment = async (req,res,next) => {
 
 // About us start here
 exports.createAbout = async (req,res,next) => {
-  const {data,activity} = req.body
-  if (activity != "chancellor") data.evntId = randomstring.generate(8)
-  
-  const about = await About.find()
-  let result
-  
-  if (about.length == 0){
-    await About.collection.insertOne({
-      "chancellor" : {},
-      "council": [],
-      "principalOfficer": [],
-    })
-  }
+ 
+  singleUpload(req, res, async function(err) {
+    let mediaImage
+    if (err instanceof multer.MulterError) {
+    return res.json(err.message);
+    }
+    else if (err) {
+      return res.json(err);
+    }
+    else if (req.file) {
+      
+      if (req.body.activity != "chancellor" && req.body.activity != "proChancellor") req.body.evntId = randomstring.generate(8)
+      if (req.file != null && req.file != undefined && req.file != ''){
+        mediaImage = await cloudinaryUplouder.upload(req.file.path)
+        req.body.image = mediaImage
+      }
+      const about = await About.find()
+      let result
+      
+      if (about.length == 0){
+        await About.collection.insertOne({
+          "chancellor" : {},
+          "council": [],
+          "principalOfficer": [],
+          "proChancellor": {}
+        })
+      }
+      const {activity} = req.body
+      let data = req.body
+      delete data.activity
+      // console.log(req.file.path, req.body)
+      if(activity == "chancellor"){
+    
+        result = await About.findOneAndUpdate({},{$set:{[activity]:data}},{new:true})
+    
+      }else if(activity == "proChancellor"){
+        
+        result = await About.findOneAndUpdate({},{$set:{[activity]:data}},{new:true})
+    
+      }else{
+        result = await About.findOneAndUpdate({},{$push:{[activity]:data}},{new:true})
+    
+      }
+      result = await About.findOne()
+      res.json({success: true, message: 'About created successfullty', result, newlyData:req.body});
+    }
+  })
 
 
-  if(activity == "chancellor"){
-    result = await About.findOneAndUpdate({},{$set:{[activity]:data}},{new:true})
-  }else{
-
-    result = await About.findOneAndUpdate({},{$push:{[activity]:data}},{new:true})
-  }
-
-  res.json({success: true, message: 'About created successfullty', result, newlyData:data});
 }
 
 exports.editAbout = async (req,res,next) => {
