@@ -7,6 +7,7 @@ const alumniController = require('../controllers/alumniController')
 const interventionController = require('../controllers/interventionController')
 const galleryController = require('../controllers/galleryController')
 const oerController = require('../controllers/oerController')
+const admissionRequirementController = require('../controllers/admissionRequirementController')
 
 
 
@@ -42,6 +43,9 @@ router.post('/create-gallery', galleryController.addGallery)
 
 // create oer
 router.post('/create-oer', oerController.addOer)
+
+// create addmission requirement
+router.post('/create-admission-requirement', admissionRequirementController.addAddmissionRequirement)
 
 // create main event
 router.put('/create-home-event', adminController.addHomeEvent)
@@ -96,6 +100,9 @@ router.put('/edit-oer', oerController.editOer)
 
 // edit about page
 router.put('/edit-about-leadership', adminController.editAbout)
+
+// edit admission requirement
+router.put('/edit-admission-requirement', admissionRequirementController.editAddmissionRequirement)
 
 // add facility service
 router.put('/add-facility-service', facilityController.addFacilityService)
@@ -313,5 +320,8 @@ router.delete('/delete-a-portal-link', adminController.deletePortalLink)
 
 // remove downloadable
 router.delete('/delete-a-downloadable', adminController.deleteDownloadable)
+
+// remove addmission requirement
+router.delete('/delete-admission-requirement', admissionRequirementController.removeAddmissionRequirement)
 
 module.exports = router
