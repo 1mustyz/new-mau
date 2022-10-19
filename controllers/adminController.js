@@ -31,7 +31,7 @@ const cloudinarySetup = require('../middlewares/cluadinarySetup');
 const { paginatedResults } = require('./pagination');
 const portalLinks = require('../models/portalsLink');
 const cloudinaryUplouder = require('../middlewares/uploadCloudinary')
-
+const AdmissionRequirement = require('../models/admissionRequirement')
 
 
 // cloudinary configuration for saving files
@@ -1137,8 +1137,15 @@ exports.editEvent = async (req,res,next) => {
       "newsEvents.$.dayOfEvent": evnt.dayOfEvent,
       "newsEvents.$.links": evnt.links,
     }},{new:true})
-  }else if (eventNamee == "programs"){
-    allEvents = await HomePage.findOneAndUpdate({"programs.evntId": eventId},{$set: {"programs.$.header": evnt.header, "programs.$.description": evnt.description,"programs.$.subHeader": evnt.subHeader}},{new:true})
+  }else if (eventName == "programs"){
+    allEvents = await HomePage.findOneAndUpdate({"programs.evntId": eventId},{$set: {
+      "programs.$.header": evnt.header, 
+      "programs.$.description": evnt.description,
+      "programs.$.dayOfEvent": evnt.dayOfEvent,
+      "programs.$.subHeader": evnt.subHeader,
+      "programs.$.links": evnt.links,
+
+    }},{new:true})
 
   }else{
   res.json({success: false, message: `wrong parameters`})
@@ -1738,11 +1745,13 @@ exports.allPrograms = async (req, res, next) => {
     })
   }
 
+  const requirement = await AdmissionRequirement.find()
+
   const promise = new Promise((resolve,reject)=>{
     resolve(filterPrograms())
   })
   promise.then(()=>{
-    res.json({success:true, undergraduate,postgraduate})
+    res.json({success:true, undergraduate,postgraduate, requirement})
 
   })
 
