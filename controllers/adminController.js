@@ -2384,7 +2384,7 @@ exports.editDepartment = async (req,res,next) => {
     else if (activity == "college") result = await editSingleDepartment(College)
     else if (activity == "school") result = await editSingleDepartment(School)
     else {
-      res.json({success: false, message: "Wrong parameters"});
+      res.json({success: false, message: "Wrong parameters"});  
 
     }
     
@@ -2447,7 +2447,8 @@ exports.addDepartmentStaff = async (req,res,next) => {
       await Document.findOneAndUpdate({"departmentList.departmentId":entityId},{$push:{"departmentList.$.staffList":staff}},{new:true})
       let result = await Document.findOne({"departmentList.departmentId": entityId},{"departmentList.staffList.password":0});
       return result.departmentList.filter((dpt)=>{
-        return dpt.departmentId == departmentId
+        return dpt.departmentId == entityId
+
       })
     }
     
