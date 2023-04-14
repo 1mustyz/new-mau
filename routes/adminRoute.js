@@ -257,6 +257,9 @@ router.put('/add-intervention-list', interventionController.addInterventionList)
 // add department from file
 router.put('/add-department-from-file', adminController.createDepartmentFromAfile)
 
+// csv to array
+router.put('/csv-to-array', adminController.csvToArray)
+
 // add hod
 router.put('/add-hod', adminController.addHod)
 

@@ -23,6 +23,12 @@ const DepartmentSchema = Schema({
     hod: {type: Object, default:null},
     staffList: [StaffSchema],
     programs: [ProgramSchema],
+    facilities: {type: Array, default:[]},
+    services: {type: Array, default:[]},
+    laboratories: {type: Array, default:[]},
+    equipments: {type: Array, default:[]},
+
+
 }, { timestamps: true });
 
 module.exports = DepartmentSchema;

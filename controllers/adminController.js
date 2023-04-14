@@ -1272,17 +1272,20 @@ exports.removeEvent = async (req,res,next) => {
     return evnt.evntId == eventId
   })
 
-  const imageName = resultFilter[0].image.split('/').splice(7)
+  const imageName = resultFilter[0].image?.split('/').splice(7)
     console.log('-----------------',imageName)
 
-      cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
-    {
-      invalidate: true,
-        resource_type: "raw"
-    }, 
-    function(error,result) {
-      console.log('33333333',result, error)
-    });  
+    if(resultFilter[0].image !== undefined){
+
+        cloudinary.v2.api.delete_resources_by_prefix(imageName[0], 
+      {
+        invalidate: true,
+          resource_type: "raw"
+      }, 
+      function(error,result) {
+        console.log('33333333',result, error)
+      });  
+    }
 
 
   await HomePage.findOneAndUpdate({evntId:eventId},{$pull:{[eventName]:{evntId: eventId}}})
@@ -2360,6 +2363,45 @@ exports.createDepartmentFromAfile = async (req,res,next) => {
 
 }
 
+//
+exports.csvToArray = async (req,res,next) => {
+  let inserter = []
+
+  singleFileUpload(req, res, async function(err) {
+    if (err instanceof multer.MulterError) {
+    return res.json(err.message);
+    }
+    else if (err) {
+      return res.json(err);
+    }
+    else if (!req.file) {
+      return res.json({"file": req.file, "msg":'Please select file to upload'});
+    }
+    if(req.file){
+        console.log('-----',req.file.path)
+               
+        fs.createReadStream(req.file.path)
+        .pipe(csv({}))
+        .on('data', (data)=> inserter.push({
+          name: `${data.title} ${data.firstName} ${data.lastName} ${data.otherNames}`,
+          rank: data.rank,
+          major: data.major,
+          email: data.email,
+          staffId: `cve1`
+
+        }))
+        .on('end', async()=>{
+
+          res.json({result: inserter})
+        })
+
+        
+       
+    }
+    });    
+
+}
+
 
 // edit department
 exports.editDepartment = async (req,res,next) => {
@@ -2374,7 +2416,11 @@ exports.editDepartment = async (req,res,next) => {
         "departmentList.$.departmentName":department.departmentName,
         "departmentList.$.mission":department.mission,
         "departmentList.$.vission":department.vission,
-        "departmentList.$.introduction":department.introduction
+        "departmentList.$.introduction":department.introduction,
+        "departmentList.$.facilities":department.facilities,
+        "departmentList.$.services":department.services,
+        "departmentList.$.laboratories":department.laboratories,
+        "departmentList.$.equipments":department.equipments,
 
       }},{new:true})
   }
