@@ -61,7 +61,7 @@ router.put("/create-campus-life", campusLifeController.addCampusLife);
 router.put("/create-alumni", alumniController.addAlumni);
 
 // add image to an event
-router.put("/upload-an-image", adminController.addAnImageToEvent);
+router.post("/upload-an-image", adminController.uploadImage);
 
 // add campus life image
 router.put(
