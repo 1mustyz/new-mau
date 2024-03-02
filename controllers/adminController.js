@@ -1177,26 +1177,58 @@ exports.getSingleDepartment = async (req, res, next) => {
   const { departmentId, activity } = req.query;
 
   const singleDepartment = async (Document) => {
-    let result = await Document.findOne(
+    const result = await Document.findOne(
       { "departmentList.departmentId": departmentId },
       { departmentList: 1 }
     );
-    return result.departmentList.filter((dpt) => {
+
+    if (!result) {
+      res.status(404).json({ success: false, message: "Department not found" });
+      return;
+    }
+
+    const filterResult = result.departmentList.filter((dpt) => {
       return dpt.departmentId == departmentId;
     });
+
+    res.json({ success: true, message: filterResult });
+    return;
   };
 
-  let result;
   try {
-    if (activity === "faculty") result = await singleDepartment(Faculty);
-    else if (activity === "college") result = await singleDepartment(College);
-    else if (activity === "school") result = await singleDepartment(School);
+    if (activity === "faculty") await singleDepartment(Faculty);
+    else if (activity === "college") await singleDepartment(College);
+    else if (activity === "school") await singleDepartment(School);
   } catch (error) {
-    console.log(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
+};
 
-  // console.log(som)
-  res.json({ success: true, message: result });
+exports.getAllFacultyDepartment = async (req, res, next) => {
+  const { target, activity, eventId } = req.query;
+
+  const departments = async (Document) => {
+    const result = await Document.findOne(
+      { [target]: eventId },
+      { departmentList: 1 }
+    );
+
+    if (!result) {
+      res.status(404).json({ success: false, message: "Faculty not found" });
+      return;
+    }
+
+    res.json({ success: true, result: result?.departmentList });
+    return;
+  };
+
+  try {
+    if (activity === "faculty") await departments(Faculty);
+    else if (activity === "college") await departments(College);
+    else if (activity === "school") await departments(School);
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Something went wrong" });
+  }
 };
 
 // get single department
@@ -1620,7 +1652,7 @@ exports.getAllDepartment = async (req, res, next) => {
       ],
     });
   } catch (error) {
-    console.log(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
 };
 
@@ -1763,34 +1795,40 @@ exports.removeDean = async (req, res, next) => {
 
 // add department
 exports.addDepartment = async (req, res, next) => {
-  const { department } = req.body;
-  const { eventId, target, activity } = req.query;
-  department.departmentId = randomstring.generate(8);
+  const { department, eventId, target, activity } = req.body;
+  department.departmentId = randomstring.generate(20);
 
-  let result;
   const insertDepartment = async (Document) => {
-    return await Document.findOneAndUpdate(
+    const result = await Document.findOne({ [target]: eventId });
+
+    if (!result) {
+      res.status(404).json({ success: false, message: "Faculty Not found" });
+      return;
+    }
+
+    await Document.findOneAndUpdate(
       { [target]: eventId },
       { $push: { departmentList: department } },
       { new: true }
     );
+
+    res.json({
+      success: true,
+      message: "Department created successfullty",
+    });
+    return;
   };
 
   try {
-    if (activity == "faculty") result = await insertDepartment(Faculty);
-    else if (activity == "college") result = await insertDepartment(College);
-    else if (activity == "school") result = await insertDepartment(School);
+    if (activity == "faculty") await insertDepartment(Faculty);
+    else if (activity == "college") await insertDepartment(College);
+    else if (activity == "school") await insertDepartment(School);
     else {
-      res.json({ success: false, message: "Wrong parameters" });
+      res.status(400).json({ success: false, message: "Wrong parameters" });
     }
   } catch (error) {
-    console.log(error);
+    res.status(500).json({ success: false, message: "Something went wrong" });
   }
-  res.json({
-    success: true,
-    message: "Department created successfullty",
-    result,
-  });
 };
 
 // register a department from a file

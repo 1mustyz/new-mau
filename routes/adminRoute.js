@@ -218,6 +218,11 @@ router.get("/get-all-faculty/:activity", adminController.getAllFaculties);
 // get single department
 router.get("/get-single-department", adminController.getSingleDepartment);
 
+router.get(
+  "/get-all-faculty-department",
+  adminController.getAllFacultyDepartment
+);
+
 // get single program
 router.get("/get-single-program", adminController.getSingleProgram);
 
