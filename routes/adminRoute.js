@@ -213,6 +213,8 @@ router.get(
 // get single faculty
 router.get("/get-single-faculty", adminController.singleFaculty);
 
+router.get("/get-all-faculty/:activity", adminController.getAllFaculties);
+
 // get single department
 router.get("/get-single-department", adminController.getSingleDepartment);
 
@@ -275,9 +277,6 @@ router.put(
 
 // edit facility service
 router.put("/edit-facility-service", facilityController.editFacilityService);
-
-// edit dean
-router.put("/edit-dean", adminController.editDean);
 
 // edit department
 router.put("/edit-department", adminController.editDepartment);
