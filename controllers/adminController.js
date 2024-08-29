@@ -1992,8 +1992,7 @@ exports.addHod = async (req, res, next) => {
 
 // add department staff
 exports.addDepartmentStaff = async (req, res, next) => {
-  const { activity, entityId } = req.query;
-  const { staff } = req.body;
+  const { activity, entityId, staff } = req.body;
   const password = randomstring.generate(8);
   const saltRounds = 10;
   const salt = bcrypt.genSaltSync(saltRounds);
@@ -2306,6 +2305,7 @@ exports.editHod = async (req, res, next) => {
         $set: {
           "departmentList.$.hod.name": hod.name,
           "departmentList.$.hod.mail": hod.mail,
+          "departmentList.$.hod.image": hod.image,
           "departmentList.$.hod.vission": hod.vission,
           "departmentList.$.hod.mission": hod.mission,
           "departmentList.$.hod.introduction": hod.introduction,

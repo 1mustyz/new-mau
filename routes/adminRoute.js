@@ -325,7 +325,6 @@ router.put("/csv-to-array", adminController.csvToArray);
 // add hod
 router.put("/add-hod", adminController.addHod);
 
-// add department staff
 router.put(
   "/add-department-staff",
   idChecker.checkId,
