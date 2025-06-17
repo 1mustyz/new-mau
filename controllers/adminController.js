@@ -574,9 +574,18 @@ exports.deletePortalLink = async (req, res, next) => {
 exports.getHomeEvent = async (req, res, next) => {
   try {
     const result = await HomePage.find({});
-    result.length > 0
-      ? res.json({ success: true, message: result })
-      : res.json({ success: false, message: result });
+
+    const data = {
+      _id: result[0]?._id,
+      newsEvents: result[0]?.newsEvents?.reverse() || [],
+      mainEvents: result[0]?.mainEvents?.reverse() || [],
+      programs: result[0]?.programs,
+      vc: result[0]?.vc,
+      quickLinks: result[0]?.quickLinks,
+      updatedAt: result[0]?.updatedAt,
+    };
+
+    res.json({ success: true, message: [data] });
   } catch (error) {
     res.json({ success: false, error });
   }
